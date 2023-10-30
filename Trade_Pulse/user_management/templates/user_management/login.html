@@ -1,0 +1,77 @@
+{% extends 'user_management/base.html' %}
+{% load static %}
+
+{% block content %}
+  <head>
+    <style>
+      h2 {
+        color: #6a5acd;
+        text-align: center; /* Center the heading */
+      }
+
+      form {
+        max-width: 400px;
+        margin: auto;
+        background-color: #f9f9f9; /* Form background color */
+        padding: 20px;
+        border: 1px solid #ddd; /* Form border */
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Form shadow */
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        color: #6a5acd; /* Label color */
+      }
+
+      input {
+        width: calc(100% - 16px);
+        padding: 8px;
+        margin-bottom: 15px;
+        box-sizing: border-box;
+        border: 1px solid #ccc; /* Input border */
+        border-radius: 5px;
+      }
+
+      .error-message {
+        color: red;
+        margin-top: 5px;
+        font-size: 14px; /* Adjust font size */
+      }
+
+      button {
+        width: 100%;
+        background-color: #6a5acd;
+        color: white;
+        padding: 10px 0; /* Adjust vertical padding */
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+    </style>
+    <title>Login</title>
+  </head>
+
+  <h2>Login</h2>
+  <form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+
+    <!-- Apply styles to individual form elements -->
+    <div>
+      <label for="{{ form.username.id_for_label }}">Username</label>
+      {{ form.username }}
+    </div>
+
+    <div>
+      <label for="{{ form.password.id_for_label }}">Password</label>
+      {{ form.password }}
+    </div>
+
+    {% if form.non_field_errors %}
+      <p class="error-message">{{ form.non_field_errors.0 }}</p>
+    {% endif %}
+
+    <button type="submit">Login</button>
+  </form>
+{% endblock %}
