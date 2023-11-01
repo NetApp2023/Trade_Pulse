@@ -1,8 +1,9 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.views import PasswordResetView
 from django.db import IntegrityError
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout, login
-from .forms import RegistrationForm, UserProfileForm
+from .forms import RegistrationForm, UserProfileForm, CustomPasswordResetForm
 from .models import UserProfile
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
@@ -29,9 +30,9 @@ def registration(request):
                 profile_form = UserProfileForm(request.POST, request.FILES, instance=profile)
                 profile_form.save()
 
-                login(request, user)
+                # login(request, user)
                 print("User registered successfully")
-                return redirect('home')  # Redirect to the user's dashboard after registration
+                return redirect('login')  # Redirect to the user's dashboard after registration
         except IntegrityError as e:
             # Handle the IntegrityError, e.g., username or email already exists
             error_message = "Username or email already exists. Please choose a different one."
@@ -69,9 +70,14 @@ def base(request):
 
     try:
         user_profile = UserProfile.objects.get(user=user)
-        profile_photo = user_profile.id_photo.url  # Assuming 'id_photo' is the field for the profile photo
+        profile_photo = user_profile.id_photo.url
 
     except UserProfile.DoesNotExist:
         profile_photo = None
 
     return render(request, 'user_management/base.html', {'profile_photo': profile_photo})
+
+
+class CustomPasswordResetView(PasswordResetView):
+    template_name = 'user_management/forgot_password.html'
+    form_class = CustomPasswordResetForm  # Use the custom form

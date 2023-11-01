@@ -21,10 +21,10 @@
                 {% if user.is_authenticated %}
                     <!-- If user is authenticated, show username and "Logout" link -->
                     <li style="font-weight: bold">Hello, {{ user.username }}!</li>
-{#                    {% if profile_photo %}#}
+                    {% if user.userprofile.id_photo.url %}
                         <!-- Display the user's profile photo if available -->
-                        <li><img src="{{ user.userprofile.id_photo.url }}" alt="Profile Photo" height="50"></li>
-{#                    {% endif %}#}
+                        <li><img src="{{  user.userprofile.id_photo.url }}" alt="Profile Photo" height="50"></li>
+                    {% endif %}
                     <li><a href="{% url 'logout' %}">Logout</a></li>
                 {% else %}
                     <!-- If user is not authenticated, show "Sign Up" and "Sign In" links -->
