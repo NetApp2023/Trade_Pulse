@@ -38,21 +38,18 @@ class RegistrationForm(UserCreationForm):
         return user
 
 
-class CustomPasswordResetForm(PasswordResetForm):
-    username = forms.CharField(label='Username', max_length=150)
-    new_password1 = forms.CharField(label='New Password', widget=forms.PasswordInput)
-    new_password2 = forms.CharField(label='Confirm New Password', widget=forms.PasswordInput)
+class CustomForgotPasswordForm(PasswordResetForm):
+    username = forms.CharField(max_length=150, required=True)
+    email = forms.EmailField(required=True)  # You can make it required if necessary
+    new_password = forms.CharField(widget=forms.PasswordInput, label='New Password')
+    confirm_password = forms.CharField(widget=forms.PasswordInput, label='Confirm Password')
 
-    def clean_username(self):
-        username = self.cleaned_data['username']
-        # Add any additional validation for the username if needed
-        return username
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password = cleaned_data.get('new_password')
+        confirm_password = cleaned_data.get('confirm_password')
 
-    def clean_new_password2(self):
-        new_password1 = self.cleaned_data.get('new_password1')
-        new_password2 = self.cleaned_data.get('new_password2')
+        if new_password and confirm_password and new_password != confirm_password:
+            raise forms.ValidationError("New password and confirm password do not match.")
 
-        if new_password1 and new_password2 and new_password1 != new_password2:
-            raise forms.ValidationError('The two password fields must match.')
-
-        return new_password2
+        return cleaned_data

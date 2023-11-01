@@ -1,11 +1,11 @@
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.views import PasswordResetView
 from django.db import IntegrityError
 from django.shortcuts import render, redirect
-from django.contrib.auth import logout, login
-from .forms import RegistrationForm, UserProfileForm, CustomPasswordResetForm
+from django.contrib.auth import logout, login, get_user_model
+from .forms import RegistrationForm, UserProfileForm, CustomForgotPasswordForm
 from .models import UserProfile
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib import messages
 
 
 def home(request):
@@ -78,6 +78,31 @@ def base(request):
     return render(request, 'user_management/base.html', {'profile_photo': profile_photo})
 
 
-class CustomPasswordResetView(PasswordResetView):
-    template_name = 'user_management/forgot_password.html'
-    form_class = CustomPasswordResetForm  # Use the custom form
+def forgot_password(request):
+    if request.method == 'POST':
+        form = CustomForgotPasswordForm(request.POST)
+        if form.is_valid():
+            print("Form is valid")
+            username = form.cleaned_data['username']
+            new_password = form.cleaned_data['new_password']
+
+            # Check if the user with the provided username exists
+            User = get_user_model()
+            try:
+                user = User.objects.get(username=username)
+
+                # Update the user's password
+                user.set_password(new_password)
+                user.save()
+
+                messages.success(request, "Password has been reset successfully.")
+                return redirect('login')
+            except User.DoesNotExist:
+                messages.error(request, "No user found with the provided username.")
+        else:
+            print("Form errors:", form.errors)
+    else:
+        form = CustomForgotPasswordForm()
+
+    return render(request, 'user_management/forgot_password.html', {'form': form})
+
