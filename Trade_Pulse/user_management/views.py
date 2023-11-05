@@ -3,13 +3,10 @@ from django.db import IntegrityError
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout, login, get_user_model
 from .forms import RegistrationForm, UserProfileForm, CustomForgotPasswordForm
-from .models import UserProfile
+from .models import UserProfile, Currency
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-
-
-def home(request):
-    return render(request, 'user_management/home.html')
+import requests
 
 
 def registration(request):
@@ -106,3 +103,84 @@ def forgot_password(request):
 
     return render(request, 'user_management/forgot_password.html', {'form': form})
 
+
+formatted_currencies = []
+
+
+def home(request):
+    # Your CoinRanking API key
+    coinranking_api_key = "e36c6d68ae02afdfcdc6bba8e8b9ecea12560c1c3840eadf"
+
+    # Fetch data from CoinCap API
+    api_url = "https://api.coinranking.com/v2/coins"
+    response = requests.get(api_url)
+
+    if response.status_code == 200:
+        data = response.json().get("data", {}).get("coins", [])
+
+        # Clear existing Currency data
+        Currency.objects.all().delete()
+
+        # Create Currency objects with data from the CoinCap API
+        for coin in data:
+            coin_id = coin.get('uuid', '')
+            name = coin.get('name', '')
+            symbol = coin.get('symbol', 'BTS')
+            icon_url = coin.get('iconUrl', 'https://cdn.coinranking.com/bOabBYkcX/bitcoin_btc.svg')
+            rank = coin.get('rank', 0)
+            price = float(coin.get('price', 0) or 0)
+            market_cap = float(coin.get('marketCap', 0) or 0)
+            change = float(coin.get('change', 0) or 0)
+            sparkline = coin.get('sparkline', [])
+            gradient_start = 50 + change / 2
+
+            # Calculate the percentage change and set the graph color
+            graph_color = 'green' if change >= 0 else 'red'
+
+            # Format currency values
+            formatted_currency = {
+                'coin_id': coin_id,
+                'name': name,
+                'symbol': symbol,
+                'icon_url': icon_url,
+                'rank': rank,
+                'price': "${}".format(round(price, 2)),
+                'market_cap': "${:.2f} billion".format(market_cap / 1e9),
+                'change': change,
+                'graph_color': graph_color,
+                'sparkline': sparkline,
+                'gradient_start': gradient_start,
+            }
+
+            formatted_currencies.append(formatted_currency)
+
+        # Pass all currencies data to the template
+        return render(
+            request,
+            'user_management/home.html',
+            {'currencies': formatted_currencies}
+        )
+    else:
+        # Handle API error
+        error_message = f"Failed to fetch data from CoinCap API. Status Code: {response.status_code}"
+        return render(request, 'user_management/home.html', {'error_message': error_message})
+
+
+def coin_details(request, coin_id):
+    # Retrieve the selected coin details from the request
+    selected_coin = next((coin for coin in formatted_currencies if coin['coin_id'] == coin_id), None)
+
+    if selected_coin:
+        # Print sparkline data to the console
+        print(f"Sparkline data for coin {coin_id}: {selected_coin.get('sparkline')}")
+
+        # Pass the selected coin details to the template
+        return render(
+            request,
+            'user_management/coin_details.html',
+            {'coin_details': selected_coin}
+        )
+    else:
+        # Handle the case where the selected coin is not found
+        error_message = f"Coin with ID {coin_id} not found."
+        return render(request, 'user_management/coin_details.html', {'error_message': error_message})

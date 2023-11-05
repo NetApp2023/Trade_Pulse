@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
-from .views import home,registration,login_view,logout_view, forgot_password
+from .views import home,registration,login_view,logout_view, forgot_password,coin_details
 
 urlpatterns = [
     path('', home, name='home'),
@@ -9,8 +9,8 @@ urlpatterns = [
     path('login/', login_view, name='login'),
     path('logout/', logout_view, name='logout'),
     path('forgot_password/', forgot_password, name='forgot_password'),
-    # path('password_reset/', include('django.contrib.auth.urls')),
-    # Add other URL patterns as needed
+    path('coin_details/<str:coin_id>/', coin_details, name='coin_details'),
+
 ]
 
 if settings.DEBUG:

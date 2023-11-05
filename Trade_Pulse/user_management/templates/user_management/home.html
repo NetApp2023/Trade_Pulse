@@ -1,18 +1,43 @@
-<!-- templates/home.html -->
+<!-- templates/user_management/home.html -->
 
 {% extends 'user_management/base.html' %}
+{% load static %}
 
 {% block content %}
-    <div class="market-stats">
-        <div class="stat-card">
-            <h2>Bitcoin</h2>
-            <p>Price: $60,000</p>
-        </div>
-        <div class="stat-card">
-            <h2>Ethereum</h2>
-            <p>Price: $2,500</p>
-        </div>
-        <!-- Add more stat cards as needed -->
-    </div>
+  <head>
+    <link rel="stylesheet" href="{% static 'user_management/home.css' %}">
+    <title>Login</title>
+  </head>
+  <div class="currency-table">
+    <table>
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Image</th>
+          <th>Name (Symbol)</th>
+          <th>Price (USD)</th>
+          <th>Market Cap (USD)</th>
+          <th>24Hr</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for currency in currencies %}
+        <tr onclick="window.location='{% url 'coin_details' coin_id=currency.coin_id %}'" style="cursor: pointer;">
 
+            <td>{{ currency.rank }}</td>
+            <td><img src="{{ currency.icon_url }}" alt="{{ currency.name_symbol }}" height="30" width="30" /></td>
+            <td>{{ currency.name }}({{ currency.symbol }})</td>
+            <td>{{ currency.price }}</td>
+            <td>{{ currency.market_cap }}</td>
+            <td>
+              <div class="graph-container">
+                <span style="color: {{ currency.graph_color }};">{% if currency.change >= 0 %}+{% endif %}{{ currency.change }}%</span>
+                <div class="line-graph" style="background: linear-gradient(to right, {% if currency.change >= 0 %}#d1f7d1, {% else %}#f7d1d1{% endif %} {{ currency.gradient_start }}%, transparent {{ currency.gradient_start }}%, transparent 100%);"></div>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 {% endblock %}

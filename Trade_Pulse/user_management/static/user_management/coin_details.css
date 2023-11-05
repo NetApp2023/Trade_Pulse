@@ -1,0 +1,26 @@
+/* Add this to your existing CSS file */
+.coin-details .coin-header {
+  background-color: #f0f0f0; /* Adjust the background color as needed */
+  padding: 10px;
+}
+
+.coin-details .header-content  {
+  display: flex;
+  align-items: center;
+}
+
+/* Add this to your existing CSS file */
+.coin-details .coin-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px; /* Adjust the margin as needed */
+}
+
+.coin-details .rank-box {
+  background-color: #FFD700; /* Adjust the background color as needed */
+  color: #000; /* Adjust the text color as needed */
+  padding: 3px;
+  border-radius: 5px;
+  font-weight: inherit;
+}

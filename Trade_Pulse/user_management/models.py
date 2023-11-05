@@ -1,11 +1,29 @@
+from datetime import datetime
+
 from django.db import models
 from django.contrib.auth.models import User
 
 
 class Currency(models.Model):
-    name = models.CharField(max_length=100)
-    code = models.CharField(max_length=10)
-    exchange_rate = models.FloatField()
+    uuid = models.CharField(max_length=50, unique=True, default=0)
+    symbol = models.CharField(max_length=10, default='BTS')
+    name = models.CharField(max_length=255, default='Bitcoin')
+    color = models.CharField(max_length=10, default='red')
+    icon_url = models.URLField(default='https://cdn.coinranking.com/bOabBYkcX/bitcoin_btc.svg')
+    market_cap = models.FloatField(default=0)
+    price = models.FloatField(default=0)
+    listed_at = models.DateTimeField(default=datetime.now())
+    tier = models.IntegerField(default=0)
+    change = models.FloatField(default=0)
+    rank = models.IntegerField(default=0)
+    sparkline = models.JSONField(null=True)
+    low_volume = models.BooleanField(default=False)
+    # coinranking_url = models.URLField(default='user_management/bitcoin.png')
+    volume_24hr = models.FloatField(default=0)
+    btc_price = models.FloatField(default=0)
+
+    def __str__(self):
+        return self.name
 
 
 class Payment(models.Model):

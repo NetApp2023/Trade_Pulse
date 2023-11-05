@@ -78,3 +78,21 @@ footer {
 footer p {
     color: white;
 }
+
+.market-stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px;
+}
+
+.stat-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    transition: transform 0.3s ease-in-out;
+}
+
+.stat-card:hover {
+    transform: scale(1.05);
+}

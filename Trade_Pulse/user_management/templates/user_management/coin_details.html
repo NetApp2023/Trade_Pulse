@@ -1,0 +1,66 @@
+<!-- templates/user_management/coin_details.html -->
+{% extends 'user_management/base.html' %}
+{% load static %}
+
+{% block content %}
+    <head>
+    <link rel="stylesheet" href="{% static 'user_management/coin_details.css' %}">
+    <title>Coin-Details</title>
+  </head>
+  <div class="coin-details">
+    <div class="coin-header">
+          <div class="header-content">
+            <img src="{{ coin_details.icon_url }}" alt="{{ coin_details.symbol }}" height="50" width="50" />
+            <div class="coin-info">
+              <h1>{{ coin_details.name }}</h1>
+              <p>({{ coin_details.symbol }}) &nbsp;</p>
+              <p class="rank-box">#{{ coin_details.rank }} </p>
+              <p style="font-weight: bold"> &nbsp;{{ coin_details.price }}</p>
+            </div>
+          </div>
+    </div>
+
+ <!-- Price chart using Chart.js -->
+    <canvas id="priceChart" width="600" height="300"></canvas>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      // Parse sparkline data
+      const sparklineData = {{ coin_details.sparkline|safe }};
+      const chartData = sparklineData
+        .filter(value => value !== null)
+        .map(value => parseFloat(value));
+      // Check if sparklineData is defined before creating the chart
+      if (typeof sparklineData !== 'undefined') {
+        // Create price chart
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        const priceChart = new Chart(ctx, {
+  type: 'line',
+  data: {
+    labels: Array.from({ length: chartData.length }, (_, i) => i + 1),
+    datasets: [{
+      label: 'Price at Different Times',
+      data: chartData,
+      backgroundColor: 'rgba(75, 192, 192, 0.2)',
+      borderColor: 'rgba(75, 192, 192, 1)',
+      borderWidth: 1,
+      fill: true,
+    }]
+  },
+  options: {
+    scales: {
+      x: {
+        type: 'linear',
+        position: 'bottom',
+      },
+      y: {
+        beginAtZero: false,
+      }
+    }
+  }
+});
+
+      }
+    </script>
+  </div>
+{% endblock %}
