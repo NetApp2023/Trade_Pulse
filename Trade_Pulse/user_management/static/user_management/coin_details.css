@@ -24,3 +24,36 @@
   border-radius: 5px;
   font-weight: inherit;
 }
+
+.positive {
+  color: green;
+}
+
+.negative {
+  color: red;
+}
+
+.chart-info {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  margin-top: 10px;
+  border-bottom: 1px solid #ccc; /* Add a bottom border for the line */
+}
+
+.chart-info p {
+  margin: 0;
+}
+
+/* Add this to your existing CSS file or create a new one */
+.change-info {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.change-info p {
+  margin: 0 5px; /* Adjust the margin as needed */
+}
+
+

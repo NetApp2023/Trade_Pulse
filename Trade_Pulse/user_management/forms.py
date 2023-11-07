@@ -53,3 +53,5 @@ class CustomForgotPasswordForm(PasswordResetForm):
             raise forms.ValidationError("New password and confirm password do not match.")
 
         return cleaned_data
+
+

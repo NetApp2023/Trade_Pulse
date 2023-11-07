@@ -171,16 +171,24 @@ def coin_details(request, coin_id):
     selected_coin = next((coin for coin in formatted_currencies if coin['coin_id'] == coin_id), None)
 
     if selected_coin:
-        # Print sparkline data to the console
-        print(f"Sparkline data for coin {coin_id}: {selected_coin.get('sparkline')}")
+        # Remove 'None' values from sparkline data
+        sparkline_data = [value for value in selected_coin.get('sparkline') if value is not None]
 
-        # Pass the selected coin details to the template
+        # Print cleaned sparkline data to the console
+        print(f"Cleaned sparkline data for coin {coin_id}: {sparkline_data}")
+
+        high_price = round(max(map(float, sparkline_data)), 2)
+        low_price = round(min(map(float, sparkline_data)), 2)
+        average_price = round(sum(map(float, sparkline_data)) / len(sparkline_data), 2) if sparkline_data else 0
+
+        # Pass the selected coin details and cleaned sparkline data to the template
         return render(
             request,
             'user_management/coin_details.html',
-            {'coin_details': selected_coin}
+            {'coin_details': selected_coin,'high_price':high_price,'low_price':low_price,'average_price':average_price, 'cleaned_sparkline_data': sparkline_data }
         )
     else:
         # Handle the case where the selected coin is not found
         error_message = f"Coin with ID {coin_id} not found."
         return render(request, 'user_management/coin_details.html', {'error_message': error_message})
+

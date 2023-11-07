@@ -1,65 +1,111 @@
-<!-- templates/user_management/coin_details.html -->
 {% extends 'user_management/base.html' %}
 {% load static %}
 
 {% block content %}
-    <head>
+  <head>
     <link rel="stylesheet" href="{% static 'user_management/coin_details.css' %}">
     <title>Coin-Details</title>
   </head>
   <div class="coin-details">
     <div class="coin-header">
-          <div class="header-content">
-            <img src="{{ coin_details.icon_url }}" alt="{{ coin_details.symbol }}" height="50" width="50" />
-            <div class="coin-info">
-              <h1>{{ coin_details.name }}</h1>
-              <p>({{ coin_details.symbol }}) &nbsp;</p>
-              <p class="rank-box">#{{ coin_details.rank }} </p>
-              <p style="font-weight: bold"> &nbsp;{{ coin_details.price }}</p>
-            </div>
-          </div>
+      <div class="header-content">
+        <img src="{{ coin_details.icon_url }}" alt="{{ coin_details.symbol }}" height="50" width="50" />
+        <div class="coin-info">
+          <h1>{{ coin_details.name }}</h1>
+          <p>({{ coin_details.symbol }}) &nbsp;</p>
+          <p class="rank-box">#{{ coin_details.rank }} </p>
+          <p style="font-weight: bold"> &nbsp;{{ coin_details.price }}</p>
+        </div>
+      </div>
     </div>
 
- <!-- Price chart using Chart.js -->
-    <canvas id="priceChart" width="600" height="300"></canvas>
+{#     <div style="display: flex; flex-direction: row; justify-content: space-between; margin-top: 10px; border-bottom: 1px solid #ccc;">#}
+    <div class="chart-info">
+      <p style="font-weight: bold;font-size: large">Price chart</p>
+      <div class="change-info">
+        <p>24h</p>
+        <p style="font-weight: bold" class="{% if coin_details.change >= 0 %}positive{% else %}negative{% endif %} ">{{ coin_details.change }}%</p>
+      </div>
+      <div class="change-info">
+        <p>High </p>
+        <p style="font-weight: bold">${{ high_price }}</p>
+      </div>
+       <div class="change-info">
+         <p>Low</p>
+         <p style="font-weight: bold">${{ low_price }}</p>
+       </div>
+       <div class="change-info">
+         <p>Average</p>
+         <p style="font-weight: bold"> ${{ average_price }}</p>
+       </div>
+    </div>
+
+
+    <div style="margin-top: 30px">
+      <canvas id="priceChart"></canvas>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      // Parse sparkline data
-      const sparklineData = {{ coin_details.sparkline|safe }};
-      const chartData = sparklineData
-        .filter(value => value !== null)
-        .map(value => parseFloat(value));
+      // Parse cleaned sparkline data
+      const sparklineData = {{ cleaned_sparkline_data|safe }};
+      const chartData = sparklineData.map(value => parseFloat(value));
+
+      // Assuming your sparklineData contains timestamps in HH:mm format
+      // Replace this with your actual time data
+      const timeLabels = ['10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm', '6pm', '7pm', '8pm', '9pm', '10pm', '11pm'];
+
       // Check if sparklineData is defined before creating the chart
-      if (typeof sparklineData !== 'undefined') {
-        // Create price chart
+      if (typeof sparklineData !== 'undefined' && sparklineData.length > 0) {
+        // Create a smaller price chart with time on Y-axis
         const ctx = document.getElementById('priceChart').getContext('2d');
         const priceChart = new Chart(ctx, {
-  type: 'line',
-  data: {
-    labels: Array.from({ length: chartData.length }, (_, i) => i + 1),
-    datasets: [{
-      label: 'Price at Different Times',
-      data: chartData,
-      backgroundColor: 'rgba(75, 192, 192, 0.2)',
-      borderColor: 'rgba(75, 192, 192, 1)',
-      borderWidth: 1,
-      fill: true,
-    }]
-  },
-  options: {
-    scales: {
-      x: {
-        type: 'linear',
-        position: 'bottom',
-      },
-      y: {
-        beginAtZero: false,
-      }
-    }
-  }
-});
-
+          type: 'line',
+          data: {
+            labels: timeLabels,
+            datasets: [{
+              label: 'Price',
+              data: chartData,
+              backgroundColor: 'rgba(106, 90, 205, 0.2)',
+              borderColor: '#6a5acd',
+              borderWidth: 2,
+              pointRadius: 1, // Smaller points
+              lineTension: 0.4, // Adjust line tension for a smoother curve
+              fill: true,
+            }]
+          },
+          options: {
+            responsive: true, // Enable automatic resizing
+            maintainAspectRatio: false, // Disable aspect ratio constraints
+            scales: {
+              x: {
+                display: false, // Hide X-axis labels
+              },
+              y: {
+                display: true, // Show Y-axis labels
+              }
+            },
+            plugins: {
+              legend: {
+                display: false,
+              },
+              tooltip: {
+                enabled: true,
+                mode: 'index',
+                intersect: false,
+              },
+            },
+            // Set explicit width and height
+            layout: {
+              padding: {
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+              },
+            },
+          },
+        });
       }
     </script>
   </div>
