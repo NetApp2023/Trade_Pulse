@@ -1,5 +1,5 @@
 h2 {
-        color: #6a5acd;
+        color: #427D9D;
         text-align: center; /* Center the heading */
       }
 
@@ -16,7 +16,7 @@ h2 {
       label {
         display: block;
         margin-bottom: 8px;
-        color: #6a5acd; /* Label color */
+        color: #427D9D; /* Label color */
       }
 
       input {
@@ -36,7 +36,7 @@ h2 {
 
       button {
         width: 100%;
-        background-color: #6a5acd;
+        background-color: #427D9D;
         color: white;
         padding: 10px 0; /* Adjust vertical padding */
         border: none;
@@ -50,6 +50,6 @@ h2 {
       }
 
       .forgot-password a {
-        color: #6a5acd;
+        color: #427D9D;
         text-decoration: underline;
       }

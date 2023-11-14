@@ -47,66 +47,105 @@
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-      // Parse cleaned sparkline data
-      const sparklineData = {{ cleaned_sparkline_data|safe }};
-      const chartData = sparklineData.map(value => parseFloat(value));
+    // Parse cleaned sparkline data
+    const sparklineData = {{ cleaned_sparkline_data|safe }};
+    const chartData = sparklineData.map(value => parseFloat(value));
 
-      // Assuming your sparklineData contains timestamps in HH:mm format
-      // Replace this with your actual time data
-      const timeLabels = ['10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm', '6pm', '7pm', '8pm', '9pm', '10pm', '11pm'];
+    // Assuming your sparklineData contains timestamps in HH:mm format
+    // Replace this with your actual time data
+    const timeLabels = ['10am', '11am', '12pm', '1pm', '2pm', '3pm', '4pm', '5pm', '6pm', '7pm', '8pm', '9pm', '10pm', '11pm'];
 
-      // Check if sparklineData is defined before creating the chart
-      if (typeof sparklineData !== 'undefined' && sparklineData.length > 0) {
+    // Check if sparklineData is defined before creating the chart
+    if (typeof sparklineData !== 'undefined' && sparklineData.length > 0) {
         // Create a smaller price chart with time on Y-axis
         const ctx = document.getElementById('priceChart').getContext('2d');
+
+        // Set explicit width and height
+        ctx.canvas.width = 700; // Set your desired width
+        ctx.canvas.height = 300; // Set your desired height
+
         const priceChart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: timeLabels,
-            datasets: [{
-              label: 'Price',
-              data: chartData,
-              backgroundColor: 'rgba(106, 90, 205, 0.2)',
-              borderColor: '#6a5acd',
-              borderWidth: 2,
-              pointRadius: 1, // Smaller points
-              lineTension: 0.4, // Adjust line tension for a smoother curve
-              fill: true,
-            }]
-          },
-          options: {
-            responsive: true, // Enable automatic resizing
-            maintainAspectRatio: false, // Disable aspect ratio constraints
-            scales: {
-              x: {
-                display: false, // Hide X-axis labels
-              },
-              y: {
-                display: true, // Show Y-axis labels
-              }
+            type: 'line',
+            data: {
+                labels: timeLabels,
+                datasets: [{
+                    label: 'Price',
+                    data: chartData,
+                    backgroundColor: 'rgba(106, 90, 205, 0.2)',
+                    borderColor: '#6a5acd',
+                    borderWidth: 2,
+                    pointRadius: 1, // Smaller points
+                    lineTension: 0.4, // Adjust line tension for a smoother curve
+                    fill: true,
+                }]
             },
-            plugins: {
-              legend: {
-                display: false,
-              },
-              tooltip: {
-                enabled: true,
-                mode: 'index',
-                intersect: false,
-              },
+            options: {
+                responsive: false, // Disable automatic resizing
+                maintainAspectRatio: false, // Disable aspect ratio constraints
+                scales: {
+                    x: {
+                        display: false, // Hide X-axis labels
+                    },
+                    y: {
+                        display: true, // Show Y-axis labels
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false,
+                    },
+                    tooltip: {
+                        enabled: true,
+                        mode: 'index',
+                        intersect: false,
+                    },
+                },
+                // Set explicit width and height
+                layout: {
+                    padding: {
+                        left: 0,
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                    },
+                },
             },
-            // Set explicit width and height
-            layout: {
-              padding: {
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-              },
-            },
-          },
         });
-      }
-    </script>
+    }
+</script>
+
   </div>
+<div class="exchange-info-container">
+    <table class="exchange-info">
+        <thead>
+            <tr>
+                <th colspan="3">{{ coin_details.name }} Exchange Listings</th>
+            </tr>
+            <tr>
+                <th>Exchange</th>
+                <th>BTC Price</th>
+                <th>24h Trade Volume</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for exchange in exchanges %}
+                <tr>
+                    <td class="align-left">
+                        <img src="{{ exchange.iconUrl }}" alt="{{ exchange.name }}" />
+                        <strong>{{ exchange.name }}</strong>
+                    </td>
+                    <td>${{ exchange.btc_price }}</td>
+                    <td class="align-left">${{ exchange.trade_volume }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
 {% endblock %}
+
+

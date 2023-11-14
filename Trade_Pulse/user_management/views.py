@@ -2,10 +2,13 @@ from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout, login, get_user_model
+
+from Trade_Pulse import settings
 from .forms import RegistrationForm, UserProfileForm, CustomForgotPasswordForm
 from .models import UserProfile, Currency
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
+from django.templatetags.static import static
 import requests
 
 
@@ -181,14 +184,47 @@ def coin_details(request, coin_id):
         low_price = round(min(map(float, sparkline_data)), 2)
         average_price = round(sum(map(float, sparkline_data)) / len(sparkline_data), 2) if sparkline_data else 0
 
-        # Pass the selected coin details and cleaned sparkline data to the template
+        # Dummy exchange rate data (replace with actual data)
+        exchanges = [
+            {"name": "Binance", "btc_price": 35370.16, "trade_volume": "3.02 billion",
+             "iconUrl": '/static/user_management/binance.png'},
+            {"name": "Bitforex", "btc_price": 35382.86, "trade_volume": "780.33 million",
+             "iconUrl": '/static/user_management/bitforex.png'},
+            {"name": "BitMart", "btc_price": 35407.29, "trade_volume": "544.68 million",
+             "iconUrl": '/static/user_management/bitmart.png'},
+            {"name": "Coinbase Pro", "btc_price": 35366.77, "trade_volume": "481.51 million",
+             "iconUrl": '/static/user_management/coinbase.png'},
+            {"name": "Bybit", "btc_price": 35362.33, "trade_volume": "471.73 million",
+             "iconUrl": '/static/user_management/bybit.png'},
+            {"name": "OKX", "btc_price": 35344.44, "trade_volume": "462.19 million",
+             "iconUrl": '/static/user_management/okx.png'},
+            {"name": "DigiFinex", "btc_price": 35343.19, "trade_volume": "418.94 million",
+             "iconUrl": '/static/user_management/digifinex.png'},
+            {"name": "Crypto.com", "btc_price": 35357.06, "trade_volume": "390.91 million",
+             "iconUrl": '/static/user_management/crypto.png'},
+            {"name": "Bitget", "btc_price": 35379.59, "trade_volume": "331.57 million",
+             "iconUrl": '/static/user_management/bitget.jpg'},
+            {"name": "MEXC Global", "btc_price": 35357.32, "trade_volume": "339.19 million",
+             "iconUrl": '/static/user_management/MEXC.jpg'},
+        ]
+
+        for exchange in exchanges:
+            exchange['iconUrl'] = request.build_absolute_uri(exchange['iconUrl'])
+
+        # Pass the selected coin details, cleaned sparkline data, and exchange rate data to the template
         return render(
             request,
             'user_management/coin_details.html',
-            {'coin_details': selected_coin,'high_price':high_price,'low_price':low_price,'average_price':average_price, 'cleaned_sparkline_data': sparkline_data }
+            {
+                'coin_details': selected_coin,
+                'high_price': high_price,
+                'low_price': low_price,
+                'average_price': average_price,
+                'exchanges': exchanges,
+                'cleaned_sparkline_data': sparkline_data,
+            }
         )
     else:
         # Handle the case where the selected coin is not found
         error_message = f"Coin with ID {coin_id} not found."
         return render(request, 'user_management/coin_details.html', {'error_message': error_message})
-
