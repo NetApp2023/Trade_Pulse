@@ -1,0 +1,46 @@
+<!-- templates/user_management/user_profile.html -->
+
+{% extends 'user_management/base.html' %}
+
+{% block content %}
+  <h2>User Profile</h2>
+
+  {% if profile_photo %}
+    <img src="{{ profile_photo }}" alt="Profile Photo">
+  {% endif %}
+
+  <h3>Coins You've Bought:</h3>
+  {% if bought_coins %}
+    <ul>
+      {% for coin in bought_coins %}
+        <li>{{ coin.name }} - {{ coin.symbol }}</li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>You haven't bought any coins yet.</p>
+  {% endif %}
+
+  {% if selected_coin %}
+    <h3>Buy {{ selected_coin.name }} ({{ selected_coin.symbol }})</h3>
+    {% if buy_coins_form %}
+      <form method="post" action="{% url 'payment_view' %}?coin_id={{ selected_coin.uuid }}" id="buy-coins-form">
+        {% csrf_token %}
+        {{ buy_coins_form.amount.label_tag }} {{ buy_coins_form.amount }}
+        <p>Total Price per unit: ${{ selected_coin.price|floatformat:"2" }}</p>
+        <p id="total-amount">Total Amount: $0.00</p>
+        <button type="submit">Buy</button>
+      </form>
+      <script>
+        document.getElementById('id_amount').addEventListener('input', function () {
+          var amount = parseFloat(this.value);
+          var pricePerUnit = parseFloat('{{ selected_coin.price }}'.replace(',', '').replace('$', ''));
+          var totalAmount = isNaN(amount) ? 0 : amount * pricePerUnit;
+          document.getElementById('total-amount').textContent = 'Total Amount: $' + totalAmount.toFixed(2);
+        });
+      </script>
+    {% else %}
+      <p>No form available for buying coins.</p>
+    {% endif %}
+{% endif %}
+
+{% endblock %}

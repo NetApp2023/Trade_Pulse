@@ -1,0 +1,43 @@
+
+<!-- templates/user_management/payment.html -->
+
+{% extends 'user_management/base.html' %}
+{% load static %}
+{% block content %}
+  <link rel="stylesheet" type="text/css" href="{% static 'user_management/payment.css' %}">
+
+  <div class="payment-container">
+    <div class="paypal-container">
+      <h2>Payment</h2>
+      <div id="paypal-button-container"></div>
+      <script src="https://www.paypal.com/sdk/js?client-id={{ paypal_client_id }}&currency=USD"></script>
+      <script>
+        paypal.Buttons({
+          createOrder: function(data, actions) {
+            // Set up the transaction
+            return actions.order.create({
+              purchase_units: [{
+                amount: {
+                  value: '10.00'  // Set your amount here
+                }
+              }]
+            });
+          },
+          onApprove: function(data, actions) {
+            // Capture the funds from the transaction
+            return actions.order.capture().then(function(details) {
+              // Redirect or handle success
+              window.location.href = "{% url 'payment_success' %}";
+            });
+          }
+        }).render('#paypal-button-container');
+      </script>
+    </div>
+    <div class="dummy-card-details">
+      <h3>Dummy Debit Card Details</h3>
+      <p>Card Number: 4111111111111111</p>
+      <p>Expiry: 12/23</p>
+      <p>CVC: 123</p>
+    </div>
+  </div>
+{% endblock %}

@@ -18,12 +18,12 @@
           <th>Price (USD)</th>
           <th>Market Cap (USD)</th>
           <th>24Hr</th>
+          <th>Action</th> <!-- New column for Buy button -->
         </tr>
       </thead>
       <tbody>
         {% for currency in currencies %}
-        <tr onclick="window.location='{% url 'coin_details' coin_id=currency.coin_id %}'" style="cursor: pointer;">
-
+          <tr onclick="window.location='{% url 'coin_details' coin_id=currency.coin_id %}'" style="cursor: pointer;">
             <td>{{ currency.rank }}</td>
             <td><img src="{{ currency.icon_url }}" alt="{{ currency.name_symbol }}" height="30" width="30" /></td>
             <td>{{ currency.name }}({{ currency.symbol }})</td>
@@ -34,6 +34,9 @@
                 <span style="color: {{ currency.graph_color }};">{% if currency.change >= 0 %}+{% endif %}{{ currency.change }}%</span>
                 <div class="line-graph" style="background: linear-gradient(to right, {% if currency.change >= 0 %}#d1f7d1, {% else %}#f7d1d1{% endif %} {{ currency.gradient_start }}%, transparent {{ currency.gradient_start }}%, transparent 100%);"></div>
               </div>
+            </td>
+            <td>
+              <a {% if not user.is_authenticated %}onclick="alert('You must be a logged in user to buy this coin')" {% endif %} href="{% if user.is_authenticated %}{% url 'user_profile' %}?coin_id={{ currency.coin_id }}{% else %}{% url 'login' %}{% endif %}">Buy</a>
             </td>
           </tr>
         {% endfor %}

@@ -1,15 +1,16 @@
+import paypalrestsdk
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout, login, get_user_model
+from paypalrestsdk import Payment
 
 from Trade_Pulse import settings
-from .forms import RegistrationForm, UserProfileForm, CustomForgotPasswordForm
+from .forms import RegistrationForm, UserProfileForm, CustomForgotPasswordForm, BuyCoinsForm
 from .models import UserProfile, Currency, Buyer
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from django.templatetags.static import static
 import requests
 
 
@@ -225,14 +226,6 @@ def coin_details(request, coin_id):
         # Sort the combined list by the 'amount' key in descending order
         top_buyers = sorted(all_buyers, key=lambda x: x['amount'], reverse=True)[:5]
 
-        # crypto_api_url = "https://api.coingecko.com/api/v3/simple/price?ids=${cryptoCurrency}&vs_currencies=usd"
-        # crypto_response = requests.get(crypto_api_url)
-        #
-        # if crypto_response.status_code == 200:
-        #     crypto_data = crypto_response.json().get("data", {}).get("rates", {})
-        #     print(crypto_data)
-
-        # Modify the crypto_api_url to use the name of the selected coin
         crypto_api_url = f"https://api.coingecko.com/api/v3/simple/price?ids={selected_coin['name']}&vs_currencies=usd"
         crypto_currencies = ['usd', 'eur', 'gbp']  # Add more currencies as needed
 
@@ -251,7 +244,7 @@ def coin_details(request, coin_id):
             else:
                 crypto_rates[currency] = 'N/A'
 
-        # Pass the selected coin details, cleaned sparkline data, and exchange rate data to the template
+            # Pass the selected coin details, cleaned sparkline data, and exchange rate data to the template
             return render(
                 request,
                 'user_management/coin_details.html',
@@ -271,3 +264,79 @@ def coin_details(request, coin_id):
         # Handle the case where the selected coin is not found
         error_message = f"Coin with ID {coin_id} not found."
         return render(request, 'user_management/coin_details.html', {'error_message': error_message})
+
+
+@login_required
+def user_profile(request):
+    global total_amount
+    total_amount = 0
+    user = request.user
+
+    try:
+        user_profile = UserProfile.objects.get(user=user)
+        profile_photo = user_profile.id_photo.url
+
+        # Get the coins bought by the user
+        user_coins = Buyer.objects.filter(user=user)
+        bought_coins = [buyer.currency for buyer in user_coins]
+
+        # Check if the coin_id parameter is present in the URL
+        coin_id = request.GET.get('coin_id')
+        selected_coin = next((coin for coin in formatted_currencies if coin['coin_id'] == coin_id), None)
+        if selected_coin:
+            selected_coin['price'] = float(selected_coin['price'].replace('$', '').replace(',', ''))
+
+        # Handle the buy coins form submission
+        if request.method == 'POST':
+            form = BuyCoinsForm(request.POST)
+            if form.is_valid():
+                amount = form.cleaned_data['amount']
+                total_amount = selected_coin['price'] * float(form.cleaned_data['amount'])
+
+                # Check if selected_coin is not None
+                if selected_coin is not None:
+                    # Create a new Buyer record for the user and the selected coin
+                    buyer = Buyer(user=user, currency=selected_coin['name'], amount=amount)
+                    buyer.save()
+
+                    # Redirect to the payments page after a successful purchase
+                    return redirect('payment_view')
+                else:
+                    messages.error(request, "Invalid coin selected for purchase.")
+            else:
+                messages.error(request, "Invalid form submission.")
+        else:
+            form = BuyCoinsForm()
+
+        if selected_coin is None:
+            messages.error(request, "Invalid coin selected for purchase.")
+
+
+    except UserProfile.DoesNotExist:
+        profile_photo = None
+        bought_coins = []
+        form = None
+        selected_coin = None
+
+    return render(
+        request,
+        'user_management/user_profile.html',
+        {
+            'profile_photo': profile_photo,
+            'bought_coins': bought_coins,
+            'buy_coins_form': form,
+            'total_amount': total_amount,
+            'selected_coin': selected_coin,
+        }
+    )
+
+
+def payment_view(request):
+    paypal_client_id = settings.PAYPAL_CLIENT_ID
+    paypal_secret = settings.PAYPAL_SECRET
+
+    return render(request, 'user_management/payment.html', {'paypal_client_id': paypal_client_id})
+
+
+def payment_success(request):
+    return render(request, 'user_management/payment_success.html')

@@ -20,7 +20,7 @@
                 <li><a href="{% url 'home' %}">Home</a></li>
                 {% if user.is_authenticated %}
                     <!-- If user is authenticated, show username and "Logout" link -->
-                    <li style="font-weight: bold">Hello, {{ user.username }}!</li>
+                    <li style="font-weight: bold"><a href="{% url 'user_profile' %}">Hello,  {{ user.username }}!</a></li>
                     {% if user.userprofile.id_photo.url %}
                         <!-- Display the user's profile photo if available -->
                         <li><img src="{{  user.userprofile.id_photo.url }}" alt="Profile Photo" height="50"></li>

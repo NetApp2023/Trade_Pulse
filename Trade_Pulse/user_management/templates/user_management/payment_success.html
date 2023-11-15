@@ -1,0 +1,10 @@
+<!-- templates/user_management/payment_success.html -->
+
+{% extends 'user_management/base.html' %}
+
+{% block content %}
+  <h2>Payment Successful</h2>
+  <p>Thank you for your purchase!</p>
+
+  <p>Navigate to Home Page, <a href="{% url 'home' %}">click here</a>.</p>
+{% endblock %}

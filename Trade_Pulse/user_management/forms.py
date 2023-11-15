@@ -3,7 +3,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
 from django.contrib.auth.models import User
-from .models import UserProfile  # Import the UserProfile model
+from .models import UserProfile, Currency  # Import the UserProfile model
 
 
 class UserProfileForm(forms.ModelForm):
@@ -55,3 +55,5 @@ class CustomForgotPasswordForm(PasswordResetForm):
         return cleaned_data
 
 
+class BuyCoinsForm(forms.Form):
+    amount = forms.DecimalField(label='Amount', min_value=0.001)
