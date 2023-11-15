@@ -1,11 +1,12 @@
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout, login, get_user_model
 
 from Trade_Pulse import settings
 from .forms import RegistrationForm, UserProfileForm, CustomForgotPasswordForm
-from .models import UserProfile, Currency
+from .models import UserProfile, Currency, Buyer
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.templatetags.static import static
@@ -211,19 +212,61 @@ def coin_details(request, coin_id):
         for exchange in exchanges:
             exchange['iconUrl'] = request.build_absolute_uri(exchange['iconUrl'])
 
-        # Pass the selected coin details, cleaned sparkline data, and exchange rate data to the template
-        return render(
-            request,
-            'user_management/coin_details.html',
-            {
-                'coin_details': selected_coin,
-                'high_price': high_price,
-                'low_price': low_price,
-                'average_price': average_price,
-                'exchanges': exchanges,
-                'cleaned_sparkline_data': sparkline_data,
+        top_users = User.objects.order_by('-date_joined')[:5]
+
+        # Create a dummy buyers list for the selected coin
+        selected_coin_buyers = [
+            {"user": {"username": user.username}, "amount": 120} for user in top_users
+        ]
+
+        # Combine the dummy buyers lists
+        all_buyers = selected_coin_buyers
+
+        # Sort the combined list by the 'amount' key in descending order
+        top_buyers = sorted(all_buyers, key=lambda x: x['amount'], reverse=True)[:5]
+
+        # crypto_api_url = "https://api.coingecko.com/api/v3/simple/price?ids=${cryptoCurrency}&vs_currencies=usd"
+        # crypto_response = requests.get(crypto_api_url)
+        #
+        # if crypto_response.status_code == 200:
+        #     crypto_data = crypto_response.json().get("data", {}).get("rates", {})
+        #     print(crypto_data)
+
+        # Modify the crypto_api_url to use the name of the selected coin
+        crypto_api_url = f"https://api.coingecko.com/api/v3/simple/price?ids={selected_coin['name']}&vs_currencies=usd"
+        crypto_currencies = ['usd', 'eur', 'gbp']  # Add more currencies as needed
+
+        # Fetch cryptocurrency rates for each currency
+        crypto_rates = {}
+        for currency in crypto_currencies:
+            params = {
+                'ids': selected_coin['name'],
+                'vs_currencies': currency,
             }
-        )
+            crypto_response = requests.get(crypto_api_url, params=params)
+
+            if crypto_response.status_code == 200:
+                rate = crypto_response.json().get(selected_coin['name'], {}).get(currency)
+                crypto_rates[currency] = rate
+            else:
+                crypto_rates[currency] = 'N/A'
+
+        # Pass the selected coin details, cleaned sparkline data, and exchange rate data to the template
+            return render(
+                request,
+                'user_management/coin_details.html',
+                {
+                    'coin_details': selected_coin,
+                    'high_price': high_price,
+                    'low_price': low_price,
+                    'average_price': average_price,
+                    'exchanges': exchanges,
+                    'top_buyers': top_buyers,
+                    'crypto_rates': crypto_rates,
+                    'crypto_currencies': crypto_currencies,
+                    'cleaned_sparkline_data': sparkline_data,
+                }
+            )
     else:
         # Handle the case where the selected coin is not found
         error_message = f"Coin with ID {coin_id} not found."

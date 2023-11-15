@@ -45,3 +45,13 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     id_photo = models.ImageField(upload_to='id_photos/', blank=True, null=True)
     # Add other profile-related fields
+
+
+class Buyer(models.Model):
+    currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=20, decimal_places=5)
+    purchase_date = models.DateTimeField(default=datetime.now())
+
+    def __str__(self):
+        return f"{self.user.username} - {self.currency.name}"

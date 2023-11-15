@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="{% static 'user_management/coin_details.css' %}">
     <title>Coin-Details</title>
   </head>
-  <div class="coin-details">
+    <div class="coin-details">
     <div class="coin-header">
       <div class="header-content">
         <img src="{{ coin_details.icon_url }}" alt="{{ coin_details.symbol }}" height="50" width="50" />
@@ -19,7 +19,6 @@
       </div>
     </div>
 
-{#     <div style="display: flex; flex-direction: row; justify-content: space-between; margin-top: 10px; border-bottom: 1px solid #ccc;">#}
     <div class="chart-info">
       <p style="font-weight: bold;font-size: large">Price chart</p>
       <div class="change-info">
@@ -40,7 +39,7 @@
        </div>
     </div>
 
-
+ <div class="chart-and-buyers">
     <div style="margin-top: 30px">
       <canvas id="priceChart"></canvas>
     </div>
@@ -61,7 +60,7 @@
         const ctx = document.getElementById('priceChart').getContext('2d');
 
         // Set explicit width and height
-        ctx.canvas.width = 700; // Set your desired width
+        ctx.canvas.width = 1200; // Set your desired width
         ctx.canvas.height = 300; // Set your desired height
 
         const priceChart = new Chart(ctx, {
@@ -114,8 +113,30 @@
     }
 </script>
 
-  </div>
-<div class="exchange-info-container">
+    <div class="top-buyers">
+  <h2><span class="star-icon">&#9733;</span>Top 5 Buyers</h2>
+  <table class="exchange-info">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Amount</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for buyer in top_buyers %}
+        <tr>
+          <td class="align-left"><span class="diamond-icon">♦</span>{{ buyer.user.username }}</td>
+          <td class="align-left">${{ buyer.amount }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+ </div>
+</div>
+
+    <div class="chart-and-buyers ">
+    <div class="exchange-info-container">
     <table class="exchange-info">
         <thead>
             <tr>
@@ -142,10 +163,63 @@
     </table>
 </div>
 
+    <script>
+  var coinDetails = {{ coin_details|safe }};
+  if (!coinDetails) {
+    // Handle the case where coinDetails is not defined
+    console.error("Error: coinDetails is not defined.");
+    coinDetails = { name: '', symbol: '' };  // Provide default values
+  }
+</script>
 
+    <div class="coin-converter">
+    <h2>Coin to Currency Converter</h2>
 
+    <label for="coinAmount">Amount in {{ coin_details.symbol|default:'Bitcoin' }}:</label>
+    <input type="number" id="coinAmount" placeholder="Enter amount" >
 
+    <label for="fiatCurrency">Convert to:</label>
+    <select id="fiatCurrency">
+        <option value="usd">US Dollar (USD)</option>
+        <option value="eur">Euro (EUR)</option>
+        <option value="jpy">Japanese Yen (YEN)</option>
+        <option value="rub">Russian Ruble (RUB)</option>
+    </select>
+
+    <button onclick="convertCoin()">Convert</button>
+
+    <div id="coinResult"></div>
+    <p style="color: #427D9D" id="conversionDate"></p>
+</div>
+
+     <script>
+   async function convertCoin() {
+    const coinAmount = document.getElementById('coinAmount').value;
+    const fiatCurrency = document.getElementById('fiatCurrency').value;
+
+    // Fetch real-time conversion rates from CoinGecko API
+    const apiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coinDetails.name}&vs_currencies=${fiatCurrency}`;
+    const response = await fetch(apiUrl);
+    const data = await response.json();
+
+    // Check if the response structure is as expected
+    if (data[coinDetails.name.toLowerCase()] && data[coinDetails.name.toLowerCase()][fiatCurrency] !== undefined) {
+        const coinToCurrencyRate = data[coinDetails.name.toLowerCase()][fiatCurrency];
+        const convertedAmount = (coinAmount * coinToCurrencyRate).toFixed(2);
+
+        // Display the converted amount
+        document.getElementById('coinResult').innerHTML = `Converted Amount: ${convertedAmount} ${fiatCurrency.toUpperCase()}`;
+
+        // Display the current date
+        const currentDate = new Date().toLocaleDateString();
+        document.getElementById('conversionDate').innerHTML = `Conversion Date: ${currentDate}`;
+    } else {
+        document.getElementById('coinResult').innerHTML = 'Invalid fiat currency selected or data not available.';
+        document.getElementById('conversionDate').innerHTML = ''; // Clear the date if conversion fails
+    }
+}
+
+</script>
+    </div>
 
 {% endblock %}
-
-
