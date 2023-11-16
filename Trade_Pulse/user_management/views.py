@@ -4,14 +4,16 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout, login, get_user_model
+from django.utils import timezone
 from paypalrestsdk import Payment
 
 from Trade_Pulse import settings
 from .forms import RegistrationForm, UserProfileForm, CustomForgotPasswordForm, BuyCoinsForm
-from .models import UserProfile, Currency, Buyer
+from .models import UserProfile, Currency
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 import requests
+from decimal import Decimal
 
 
 def registration(request):
@@ -268,39 +270,63 @@ def coin_details(request, coin_id):
 
 @login_required
 def user_profile(request):
-    global total_amount
+    global total_amount, selected_coin_data, pc
     total_amount = 0
     user = request.user
-
+    coin_id = request.GET.get('coin_id')
+    user_profile = UserProfile.objects.get(user=user)
     try:
-        user_profile = UserProfile.objects.get(user=user)
+
         profile_photo = user_profile.id_photo.url
 
-        # Get the coins bought by the user
-        user_coins = Buyer.objects.filter(user=user)
-        bought_coins = [buyer.currency for buyer in user_coins]
+        # Get other user details
+        username = user.username
+        email = user.email
 
         # Check if the coin_id parameter is present in the URL
-        coin_id = request.GET.get('coin_id')
-        selected_coin = next((coin for coin in formatted_currencies if coin['coin_id'] == coin_id), None)
-        if selected_coin:
-            selected_coin['price'] = float(selected_coin['price'].replace('$', '').replace(',', ''))
+        selected_coin_data = next((coin for coin in formatted_currencies if coin['coin_id'] == coin_id), None)
 
         # Handle the buy coins form submission
         if request.method == 'POST':
             form = BuyCoinsForm(request.POST)
             if form.is_valid():
                 amount = form.cleaned_data['amount']
-                total_amount = selected_coin['price'] * float(form.cleaned_data['amount'])
 
-                # Check if selected_coin is not None
-                if selected_coin is not None:
-                    # Create a new Buyer record for the user and the selected coin
-                    buyer = Buyer(user=user, currency=selected_coin['name'], amount=amount)
-                    buyer.save()
+                # Check if selected_coin_data is not None
+                if selected_coin_data is not None:
+                    price_per_unit = Decimal(selected_coin_data['price'].replace(',', '').replace('$', ''))
+                    total_amount = price_per_unit * amount
+
+                    # Add the selected coin to the user's purchased coins
+                    selected_coin,created= Currency.objects.get_or_create(
+                        uuid=selected_coin_data['coin_id'],
+                        defaults={
+                            'symbol': selected_coin_data['symbol'],
+                            'name': selected_coin_data['name'],
+                            'color': selected_coin_data['graph_color'],
+                            'icon_url': selected_coin_data['icon_url'],
+                            'market_cap': total_amount,  # Set appropriate values or adjust the model
+                            'price': Decimal(selected_coin_data['price'].replace(',', '').replace('$', '')),
+                            'listed_at': timezone.now(),
+                            'tier': 0,  # Set appropriate values or adjust the model
+                            'change': 0,  # Set appropriate values or adjust the model
+                            'rank': price_per_unit,  # Set appropriate values or adjust the model
+                            'sparkline': None,  # Set appropriate values or adjust the model
+                            'low_volume': False,  # Set appropriate values or adjust the model
+                            'volume_24hr': 0,  # Set appropriate values or adjust the model
+                            'btc_price': 0  # Set appropriate values or adjust the model
+                        }
+                    )
+
+                    user_profile.purchased_coins.add(selected_coin)
+
+                    pc = user_profile.purchased_coins.all()
+                    print(pc.values())
+
+
 
                     # Redirect to the payments page after a successful purchase
-                    return redirect('payment_view')
+                    return redirect('payment_view', coin_id=coin_id, total_amount=total_amount)
                 else:
                     messages.error(request, "Invalid coin selected for purchase.")
             else:
@@ -308,34 +334,138 @@ def user_profile(request):
         else:
             form = BuyCoinsForm()
 
-        if selected_coin is None:
+        if selected_coin_data is None:
             messages.error(request, "Invalid coin selected for purchase.")
-
 
     except UserProfile.DoesNotExist:
         profile_photo = None
-        bought_coins = []
         form = None
         selected_coin = None
+        username = None
+        email = None
 
     return render(
         request,
         'user_management/user_profile.html',
         {
             'profile_photo': profile_photo,
-            'bought_coins': bought_coins,
             'buy_coins_form': form,
             'total_amount': total_amount,
-            'selected_coin': selected_coin,
+            'selected_coin': selected_coin_data,
+            'username': username,
+            'email': email,
+            'user_profile':user_profile
+
         }
     )
 
 
-def payment_view(request):
+# def user_profile(request):
+#     global total_amount, selected_coin_data, pc
+#     total_amount = 0
+#     user = request.user
+#     coin_id = request.GET.get('coin_id')
+#     user_profile = UserProfile.objects.get(user=user)
+#     try:
+#
+#         profile_photo = user_profile.id_photo.url
+#
+#         # Get other user details
+#         username = user.username
+#         email = user.email
+#
+#         # Check if the coin_id parameter is present in the URL
+#         selected_coin_data = next((coin for coin in formatted_currencies if coin['coin_id'] == coin_id), None)
+#
+#         # Handle the buy coins form submission
+#         if request.method == 'POST':
+#             form = BuyCoinsForm(request.POST)
+#             if form.is_valid():
+#                 amount = form.cleaned_data['amount']
+#
+#                 # Check if selected_coin_data is not None
+#                 if selected_coin_data is not None:
+#                     price_per_unit = Decimal(selected_coin_data['price'].replace(',', '').replace('$', ''))
+#                     total_amount = price_per_unit * amount
+#
+#                     # Add the selected coin to the user's purchased coins
+#                     selected_coin,created= Currency.objects.get_or_create(
+#                         uuid=selected_coin_data['coin_id'],
+#                         defaults={
+#                             'symbol': selected_coin_data['symbol'],
+#                             'name': selected_coin_data['name'],
+#                             'color': selected_coin_data['graph_color'],
+#                             'icon_url': selected_coin_data['icon_url'],
+#                             'market_cap': 0,  # Set appropriate values or adjust the model
+#                             'price': Decimal(selected_coin_data['price'].replace(',', '').replace('$', '')),
+#                             'listed_at': timezone.now(),
+#                             'tier': 0,  # Set appropriate values or adjust the model
+#                             'change': 0,  # Set appropriate values or adjust the model
+#                             'rank': 0,  # Set appropriate values or adjust the model
+#                             'sparkline': None,  # Set appropriate values or adjust the model
+#                             'low_volume': False,  # Set appropriate values or adjust the model
+#                             'volume_24hr': 0,  # Set appropriate values or adjust the model
+#                             'btc_price': 0  # Set appropriate values or adjust the model
+#                         }
+#                     )
+#
+#                     purchased_currency, created = PurchasedCurrency.objects.get_or_create(
+#                         user_profile=user_profile,
+#                         currency=selected_coin,
+#                         amount_purchased=amount,
+#                         purchase_rate=price_per_unit
+#                     )
+#
+#                     print(purchased_currency)
+#                     print(user_profile.purchasedcurrency_set.all())
+#
+#                     # Redirect to the payments page after a successful purchase
+#                     return redirect('payment_view', coin_id=coin_id, total_amount=total_amount)
+#                 else:
+#                     messages.error(request, "Invalid coin selected for purchase.")
+#             else:
+#                 messages.error(request, "Invalid form submission.")
+#         else:
+#             form = BuyCoinsForm()
+#
+#         if selected_coin_data is None:
+#             messages.error(request, "Invalid coin selected for purchase.")
+#
+#     except UserProfile.DoesNotExist:
+#         profile_photo = None
+#         form = None
+#         selected_coin = None
+#         username = None
+#         email = None
+#
+#     return render(
+#         request,
+#         'user_management/user_profile.html',
+#         {
+#             'profile_photo': profile_photo,
+#             'buy_coins_form': form,
+#             'total_amount': total_amount,
+#             'selected_coin': selected_coin_data,
+#             'username': username,
+#             'email': email,
+#
+#
+#         }
+#     )
+
+def payment_view(request, coin_id, total_amount):
+    try:
+        total_amount = float(total_amount)
+    except ValueError:
+        # Handle the case where total_amount is not a valid float
+        # You might want to redirect or display an error message
+        pass
+
     paypal_client_id = settings.PAYPAL_CLIENT_ID
     paypal_secret = settings.PAYPAL_SECRET
 
-    return render(request, 'user_management/payment.html', {'paypal_client_id': paypal_client_id})
+    return render(request, 'user_management/payment.html',
+                  {'paypal_client_id': paypal_client_id, 'coin_id': coin_id, 'total_amount': total_amount})
 
 
 def payment_success(request):

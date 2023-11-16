@@ -1,0 +1,18 @@
+.user-profile-container {
+  display: flex;
+}
+
+.profile-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.profile-photo {
+  /* Add any styling you need for the profile photo */
+}
+
+.user-details {
+  margin-top: 10px; /* Adjust the margin as needed */
+  text-align: center; /* Center the text */
+}

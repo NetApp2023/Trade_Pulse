@@ -2,6 +2,7 @@ from datetime import datetime
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 class Currency(models.Model):
@@ -44,14 +45,23 @@ class PaymentHistory(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     id_photo = models.ImageField(upload_to='id_photos/', blank=True, null=True)
+    purchased_coins = models.ManyToManyField(Currency,related_name='purchased_by_users')
     # Add other profile-related fields
+
+
+# class PurchasedCurrency(models.Model):
+#     user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+#     currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
+#     amount_purchased = models.DecimalField(max_digits=20, decimal_places=5)
+#     purchase_rate = models.DecimalField(max_digits=20, decimal_places=2)
+#     purchase_date = models.DateTimeField(default=timezone.now)
 
 
 class Buyer(models.Model):
     currency = models.ForeignKey(Currency, on_delete=models.CASCADE)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     amount = models.DecimalField(max_digits=20, decimal_places=5)
-    purchase_date = models.DateTimeField(default=datetime.now())
+    purchase_date = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return f"{self.user.username} - {self.currency.name}"
