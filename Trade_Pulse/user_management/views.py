@@ -9,11 +9,12 @@ from paypalrestsdk import Payment
 
 from Trade_Pulse import settings
 from .forms import RegistrationForm, UserProfileForm, CustomForgotPasswordForm, BuyCoinsForm
-from .models import UserProfile, Currency
+from .models import UserProfile, Currency, Payment
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 import requests
 from decimal import Decimal
+from django.db import IntegrityError, transaction
 
 
 def registration(request):
@@ -111,22 +112,14 @@ def forgot_password(request):
     return render(request, 'user_management/forgot_password.html', {'form': form})
 
 
-formatted_currencies = []
-
-
-def home(request):
-    # Your CoinRanking API key
+def fetch_and_format_currencies():
     coinranking_api_key = "e36c6d68ae02afdfcdc6bba8e8b9ecea12560c1c3840eadf"
-
-    # Fetch data from CoinCap API
     api_url = "https://api.coinranking.com/v2/coins"
     response = requests.get(api_url)
 
     if response.status_code == 200:
         data = response.json().get("data", {}).get("coins", [])
-
-        # Clear existing Currency data
-        Currency.objects.all().delete()
+        formatted_currencies = []
 
         # Create Currency objects with data from the CoinCap API
         for coin in data:
@@ -161,19 +154,24 @@ def home(request):
 
             formatted_currencies.append(formatted_currency)
 
-        # Pass all currencies data to the template
-        return render(
-            request,
-            'user_management/home.html',
-            {'currencies': formatted_currencies}
-        )
+        return formatted_currencies
     else:
-        # Handle API error
-        error_message = f"Failed to fetch data from CoinCap API. Status Code: {response.status_code}"
-        return render(request, 'user_management/home.html', {'error_message': error_message})
+        return []  # Return an empty list or handle the error accordingly
+
+
+def home(request):
+
+    formatted_currencies = fetch_and_format_currencies()
+    # Pass all currencies data to the template
+    return render(
+        request,
+        'user_management/home.html',
+        {'currencies': formatted_currencies}
+    )
 
 
 def coin_details(request, coin_id):
+    formatted_currencies = fetch_and_format_currencies()
     # Retrieve the selected coin details from the request
     selected_coin = next((coin for coin in formatted_currencies if coin['coin_id'] == coin_id), None)
 
@@ -270,18 +268,22 @@ def coin_details(request, coin_id):
 
 @login_required
 def user_profile(request):
-    global total_amount, selected_coin_data, pc
+    global total_amount, selected_coin_data, pc, payment_history
     total_amount = 0
     user = request.user
     coin_id = request.GET.get('coin_id')
     user_profile = UserProfile.objects.get(user=user)
+    formatted_currencies = fetch_and_format_currencies()
     try:
-
         profile_photo = user_profile.id_photo.url
 
         # Get other user details
         username = user.username
         email = user.email
+
+        payment_history = Payment.objects.filter(user=user)
+        for c in payment_history:
+            print(c.transaction_id)
 
         # Check if the coin_id parameter is present in the URL
         selected_coin_data = next((coin for coin in formatted_currencies if coin['coin_id'] == coin_id), None)
@@ -298,7 +300,7 @@ def user_profile(request):
                     total_amount = price_per_unit * amount
 
                     # Add the selected coin to the user's purchased coins
-                    selected_coin,created= Currency.objects.get_or_create(
+                    selected_coin, created = Currency.objects.get_or_create(
                         uuid=selected_coin_data['coin_id'],
                         defaults={
                             'symbol': selected_coin_data['symbol'],
@@ -318,12 +320,13 @@ def user_profile(request):
                         }
                     )
 
-                    user_profile.purchased_coins.add(selected_coin)
-
-                    pc = user_profile.purchased_coins.all()
-                    print(pc.values())
-
-
+                    try:
+                        with transaction.atomic():
+                            user_profile.purchased_coins.add(selected_coin)
+                            user_profile.save()
+                            print("UserProfile saved successfully")
+                    except IntegrityError as e:
+                        print(f"IntegrityError saving user profile: {e}")
 
                     # Redirect to the payments page after a successful purchase
                     return redirect('payment_view', coin_id=coin_id, total_amount=total_amount)
@@ -354,104 +357,18 @@ def user_profile(request):
             'selected_coin': selected_coin_data,
             'username': username,
             'email': email,
-            'user_profile':user_profile
-
+            'user_profile': user_profile,
+            'payment_history': payment_history,
         }
     )
 
 
-# def user_profile(request):
-#     global total_amount, selected_coin_data, pc
-#     total_amount = 0
-#     user = request.user
-#     coin_id = request.GET.get('coin_id')
-#     user_profile = UserProfile.objects.get(user=user)
-#     try:
-#
-#         profile_photo = user_profile.id_photo.url
-#
-#         # Get other user details
-#         username = user.username
-#         email = user.email
-#
-#         # Check if the coin_id parameter is present in the URL
-#         selected_coin_data = next((coin for coin in formatted_currencies if coin['coin_id'] == coin_id), None)
-#
-#         # Handle the buy coins form submission
-#         if request.method == 'POST':
-#             form = BuyCoinsForm(request.POST)
-#             if form.is_valid():
-#                 amount = form.cleaned_data['amount']
-#
-#                 # Check if selected_coin_data is not None
-#                 if selected_coin_data is not None:
-#                     price_per_unit = Decimal(selected_coin_data['price'].replace(',', '').replace('$', ''))
-#                     total_amount = price_per_unit * amount
-#
-#                     # Add the selected coin to the user's purchased coins
-#                     selected_coin,created= Currency.objects.get_or_create(
-#                         uuid=selected_coin_data['coin_id'],
-#                         defaults={
-#                             'symbol': selected_coin_data['symbol'],
-#                             'name': selected_coin_data['name'],
-#                             'color': selected_coin_data['graph_color'],
-#                             'icon_url': selected_coin_data['icon_url'],
-#                             'market_cap': 0,  # Set appropriate values or adjust the model
-#                             'price': Decimal(selected_coin_data['price'].replace(',', '').replace('$', '')),
-#                             'listed_at': timezone.now(),
-#                             'tier': 0,  # Set appropriate values or adjust the model
-#                             'change': 0,  # Set appropriate values or adjust the model
-#                             'rank': 0,  # Set appropriate values or adjust the model
-#                             'sparkline': None,  # Set appropriate values or adjust the model
-#                             'low_volume': False,  # Set appropriate values or adjust the model
-#                             'volume_24hr': 0,  # Set appropriate values or adjust the model
-#                             'btc_price': 0  # Set appropriate values or adjust the model
-#                         }
-#                     )
-#
-#                     purchased_currency, created = PurchasedCurrency.objects.get_or_create(
-#                         user_profile=user_profile,
-#                         currency=selected_coin,
-#                         amount_purchased=amount,
-#                         purchase_rate=price_per_unit
-#                     )
-#
-#                     print(purchased_currency)
-#                     print(user_profile.purchasedcurrency_set.all())
-#
-#                     # Redirect to the payments page after a successful purchase
-#                     return redirect('payment_view', coin_id=coin_id, total_amount=total_amount)
-#                 else:
-#                     messages.error(request, "Invalid coin selected for purchase.")
-#             else:
-#                 messages.error(request, "Invalid form submission.")
-#         else:
-#             form = BuyCoinsForm()
-#
-#         if selected_coin_data is None:
-#             messages.error(request, "Invalid coin selected for purchase.")
-#
-#     except UserProfile.DoesNotExist:
-#         profile_photo = None
-#         form = None
-#         selected_coin = None
-#         username = None
-#         email = None
-#
-#     return render(
-#         request,
-#         'user_management/user_profile.html',
-#         {
-#             'profile_photo': profile_photo,
-#             'buy_coins_form': form,
-#             'total_amount': total_amount,
-#             'selected_coin': selected_coin_data,
-#             'username': username,
-#             'email': email,
-#
-#
-#         }
-#     )
+paypalrestsdk.configure({
+    "mode": "sandbox",  # Change to "live" for production
+    "client_id": settings.PAYPAL_CLIENT_ID,
+    "client_secret": settings.PAYPAL_SECRET,
+})
+
 
 def payment_view(request, coin_id, total_amount):
     try:
@@ -464,9 +381,72 @@ def payment_view(request, coin_id, total_amount):
     paypal_client_id = settings.PAYPAL_CLIENT_ID
     paypal_secret = settings.PAYPAL_SECRET
 
+    # Create a PayPal payment
+    payment = paypalrestsdk.Payment({
+        "intent": "sale",
+        "payer": {
+            "payment_method": "paypal",
+        },
+        "transactions": [
+            {
+                "amount": {
+                    "total": str(total_amount),
+                    "currency": "USD",
+                },
+            },
+        ],
+        "redirect_urls": {
+            "return_url": "http://localhost:8000/payment_success/",
+            "cancel_url": "http://localhost:8000/payment_cancel/",
+        },
+    })
+
+    if payment.create():
+        # Save the payment details to your local Payment model
+        Payment.objects.create(
+            user=request.user,
+            amount=total_amount,
+            currency=Currency.objects.get(uuid=coin_id),
+            payment_date=timezone.now(),
+            transaction_id=payment.id,
+        )
+        print(Payment)
+    else:
+        print(payment.error)
+        # Handle payment creation error
+
     return render(request, 'user_management/payment.html',
                   {'paypal_client_id': paypal_client_id, 'coin_id': coin_id, 'total_amount': total_amount})
 
 
 def payment_success(request):
     return render(request, 'user_management/payment_success.html')
+
+# def payment_success(request):
+#     if request.method == 'GET':
+#         payment_id = request.GET.get('paymentId')
+#         print(payment_id)
+#         if payment_id:
+#             # Fetch the payment from PayPal
+#             payment_response = paypalrestsdk.Payment.find(payment_id)
+#             print(payment_response)
+#             if payment_response.success():
+#                 # Get the associated payment model instance
+#                 payment = Payment.objects.get(transaction_id=payment_id)
+#                 print(payment)
+#                 # Update the payment model with the captured transaction ID
+#                 captured_transaction_id = payment_response.transactions[0].related_resources[0].sale.id
+#                 payment.captured_transaction_id = captured_transaction_id
+#                 payment.save()
+#
+#                 print(captured_transaction_id)
+#
+#                 messages.success(request, "Payment captured successfully.")
+#
+#                 # Redirect to the user_profile page with the updated payment history
+#                 return redirect('user_profile')
+#             else:
+#                 messages.error(request,
+#                                "Failed to capture payment. PayPal API error: {}".format(payment_response.error))
+#
+#     return render(request, 'user_management/payment_success.html')

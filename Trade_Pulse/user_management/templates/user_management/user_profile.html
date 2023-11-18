@@ -21,10 +21,12 @@
     </div>
 
 {% if user_profile.purchased_coins.all %}
-  <div class="purchased-coins">
-    <h3>Purchased Coins:</h3>
-    <table>
+  <div class="purchased-coins-container">
+    <table class="purchased-coins">
       <thead>
+          <tr>
+              <th colspan="6">Purchased Coins:</th>
+          </tr>
         <tr>
           <th>Icon</th>
           <th>Currency</th>
@@ -52,6 +54,9 @@
   <p>No coins purchased yet.</p>
 {% endif %}
 
+
+
+
   </div>
 
   {% if selected_coin %}
@@ -77,5 +82,22 @@
         <p>No form available for buying coins.</p>
       {% endif %}
     </div>
+
+
+      {% if payment_history %}
+  <h2>Payment History</h2>
+  <ul>
+    {% for payment in payment_history %}
+      <li>
+        Amount: {{ payment.amount }} USD<br>
+        Currency: {{ payment.currency }}<br>
+        Payment Date: {{ payment.payment_date }}<br>
+        Captured Transaction ID: {{ payment.captured_transaction_id }}<br>
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>No payment history available.</p>
+{% endif %}
   {% endif %}
 {% endblock %}

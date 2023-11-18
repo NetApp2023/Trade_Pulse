@@ -4,6 +4,8 @@
 
 .profile-details {
   display: flex;
+  padding: 0px 40px 40px;
+  margin: 0px 30px 30px;
   flex-direction: column;
   align-items: center;
 }
@@ -13,6 +15,83 @@
 }
 
 .user-details {
-  margin-top: 10px; /* Adjust the margin as needed */
-  text-align: center; /* Center the text */
+
+  text-align: center;
+}
+
+.purchased-coins-container {
+    flex: 1;
+    margin: 20px auto 20px 50px;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+.purchased-coins {
+    width: 80%;
+    border-collapse: collapse;
+    margin: 0 auto;
+}
+
+.purchased-coins th, .purchased-coins td {
+    border: 1px solid #dddddd; /* Add borders to cells */
+    padding: 12px; /* Adjust the padding as needed */
+}
+
+.purchased-coins th {
+    background-color: #f2f2f2;
+}
+
+.purchased-coins img {
+    max-width: 20px;
+    max-height: 20px;
+    margin-right: 2px;
+}
+
+.align-left{
+    text-align: left;
+}
+
+.buy-coins-form {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+}
+
+.buy-coins-form h3 {
+  color: #333;
+}
+
+.buy-coins-form form {
+  margin-top: 15px;
+}
+
+.buy-coins-form label {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.buy-coins-form input {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 15px;
+  box-sizing: border-box;
+}
+
+.buy-coins-form p {
+  margin-bottom: 10px;
+}
+
+.buy-coins-form button {
+  background-color:  #427D9D;
+  color: #fff;
+  padding: 10px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.buy-coins-form button:hover {
+  background-color: blue;
 }

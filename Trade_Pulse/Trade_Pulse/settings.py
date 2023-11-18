@@ -124,6 +124,9 @@ STATICFILES_DIRS = [
 USE_TZ = True
 TIME_ZONE = 'UTC'
 
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'
+SESSION_COOKIE_AGE = 1209600
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 PAYPAL_CLIENT_ID = 'AfDVYrwKp2JxSiG-pjPQVPsLNGh_ZyGB2boqUyUPAm48vG1uD9zNBdrZWTv7bu8BJ6tScHobhjDM-21Y'
