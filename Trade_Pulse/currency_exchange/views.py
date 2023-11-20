@@ -1,7 +1,8 @@
 from django.http import JsonResponse
 from django.shortcuts import render
 
-from .models import ExchangeRate
+from .models import ExchangeRate, Cryptocurrency
+
 
 def convert_btc_to_usd(request):
     context = {}
@@ -16,3 +17,13 @@ def convert_btc_to_usd(request):
             except ExchangeRate.DoesNotExist:
                 context['error'] = 'Exchange rate not found'
     return render(request, 'currency-exchange/exchange.html', context)
+
+def list_cryptocurrencies(request):
+    cryptos = Cryptocurrency.objects.all()
+    return render(request, 'currency-exchange/cryptos.html', {'cryptos': cryptos})
+
+def buy_crypto(request, crypto_id):
+    crypto = Cryptocurrency.objects.get(id=crypto_id)
+    # For simplicity, let's assume the user buys 1 unit of the crypto
+    usd_value = crypto.price_usd
+    return render(request, 'currency-exchange/purchase_confirmation.html', {'crypto': crypto, 'usd_value': usd_value})

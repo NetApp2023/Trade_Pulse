@@ -1,0 +1,10 @@
+{% extends 'user_management/base.html' %}
+
+{% block content %}
+<body>
+    <div class="container">
+        <h1>Buy Cryptocurrency</h1>
+        <p>You are buying 1 unit of {{ crypto.name }} ({{ crypto.symbol }}).</p>
+        <p>Equivalent in USD: ${{ usd_value }}</p>
+    </div>
+{% endblock %}
