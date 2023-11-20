@@ -33,3 +33,15 @@ class RegistrationForm(UserCreationForm):
             profile.save()
 
         return user
+
+
+class AddMoneyForm(forms.Form):
+    amount = forms.IntegerField(label='Amount', min_value=0)
+
+
+class BuyCryptoForm(forms.Form):
+    quantity = forms.DecimalField(label='Quantity', min_value=0.0001)
+
+
+class SellCryptoForm(forms.Form):
+    quantity = forms.DecimalField(label='Quantity to sell', min_value=0.0001)

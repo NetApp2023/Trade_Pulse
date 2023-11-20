@@ -25,7 +25,7 @@
                         <!-- Display the user's profile photo if available -->
                         <li><img src="{{ user.userprofile.id_photo.url }}" alt="Profile Photo" height="50"></li>
 {#                    {% endif %}#}
-                    <li>&#x1F4B0;</li>
+                    <li><a href="{% url 'add_money' %}" class="wallet-icon">&#x1F4B0;</a></li>
                     <li>{{ wallet.amount }}</li>
                     <li><a href="{% url 'logout' %}">Logout</a></li>
                 {% else %}
@@ -39,7 +39,15 @@
     </header>
 
     <section>
-        {% block content %}{% endblock %}
+        <form method="post" class="top-up-form">
+                {% csrf_token %}
+                <h2>Sell {{ crypto.name }}</h2>
+                <p>Current Price: ${{ crypto.price }}</p>
+                <p>Available Quantity: {{ total_quantity_owned }}</p>
+                <label for="id_quantity">Quantity to sell</label>
+                <input type="number" id="id_quantity" name="quantity" min="0" required>
+                <button type="submit" class="submit-btn">Sell</button>
+            </form>
     </section>
 
     <footer>
