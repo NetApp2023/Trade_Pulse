@@ -2,102 +2,128 @@
 {% load static %}
 
 {% block content %}
-  <head>
-    <link rel="stylesheet" href="{% static 'user_management/user_profile.css' %}">
-    <title>User Profile</title>
-  </head>
-  <h2 class="professional-title">User Profile</h2>
+    <head>
+        <link rel="stylesheet" href="{% static 'user_management/user_profile.css' %}">
+        <title>User Profile</title>
+    </head>
+    <h2 class="professional-title">User Profile</h2>
 
-  <div class="user-profile-container">
-    <div class="profile-details">
-      {% if profile_photo %}
-        <img src="{{ profile_photo }}" alt="Profile Photo" class="profile-photo">
-        <div class="user-details">
-          <h3>User Details:</h3>
-          <p><strong>Username:</strong> {{ username }}</p>
-          <p><strong>Email:</strong> {{ email }}</p>
+    <div class="user-profile-container">
+        <div class="profile-details">
+            {% if profile_photo %}
+                <img src="{{ profile_photo }}" alt="Profile Photo" class="profile-photo">
+                <div class="user-details">
+                    <h3>User Details</h3>
+                    <p><strong>Username:</strong> {{ username }}</p>
+                    <p><strong>Email:</strong> {{ email }}</p>
+                </div>
+            {% endif %}
         </div>
-      {% endif %}
+
+        {% if selected_coin %}
+            <div class="buy-coins-form">
+                <div style="height: 200px">
+                    <h3>Buy {{ selected_coin.name }} ({{ selected_coin.symbol }})</h3>
+                    <img style="height: 100%"  src="{{ selected_coin.icon_url }}" alt="Profile Photo" class="profile-photo">
+                </div>
+                <div style="margin-left:20px; margin-right:20px; border-left: 1px solid #dddddd;height:100%"></div>
+                {% if buy_coins_form %}
+                    <form method="post" >
+                        {% csrf_token %}
+                        {{ buy_coins_form.amount.label_tag }} {{ buy_coins_form.amount }}
+                        <p>Price per unit: {{ selected_coin.price }}</p>
+                        <p id="total-amount">Total Amount: $0.00</p>
+                        <button style="width: 100px; margin-top: 20px" type="submit">Buy</button>
+                    </form>
+                    <script>
+                        document.getElementById('id_amount').addEventListener('input', function () {
+                            var amount = parseFloat(this.value);
+                            var pricePerUnit = parseFloat('{{ selected_coin.price }}'.replace(',', '').replace('$', ''));
+                            var totalAmount = isNaN(amount) ? 0 : amount * pricePerUnit;
+                            document.getElementById('total-amount').textContent = 'Total Amount: $' + totalAmount.toFixed(2);
+                        });
+                    </script>
+                {% else %}
+                    <p>No form available for buying coins.</p>
+                {% endif %}
+            </div>
+        {% endif %}
     </div>
 
-{% if user_profile.purchased_coins.all %}
-  <div class="purchased-coins-container">
-    <table class="purchased-coins">
-      <thead>
-          <tr>
-              <th colspan="6">Purchased Coins:</th>
-          </tr>
-        <tr>
-          <th>Icon</th>
-          <th>Currency</th>
-          <th>Symbol</th>
-          <th>Amount Purchased</th>
-          <th>Purchase Rate</th>
-          <th>Current Rate</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for purchased_coin in user_profile.purchased_coins.all %}
-          <tr>
-            <td><img src="{{ purchased_coin.icon_url }}" alt="{{ purchased_coin.name }}" height="50" width="50"></td>
-            <td>{{ purchased_coin.name }}</td>
-            <td>{{ purchased_coin.symbol }}</td>
-            <td>{{ purchased_coin.market_cap }}</td>
-            <td>{{ purchased_coin.rank }}</td>
-            <td>{{ purchased_coin.price }}</td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-{% else %}
-  <p>No coins purchased yet.</p>
-{% endif %}
+    <div style="display: flex">
+        {% if user_profile.purchased_coins.all %}
+            <div class="purchased-coins-container">
 
+                <div class="purchased-coins">
+                    <table class="table-container">
+                        <thead>
+                        <tr>
+                            <th colspan="6">Purchased Coins</th>
+                        </tr>
+                        <tr>
+                            <th>Icon</th>
+                            <th>Currency</th>
+                            <th>Symbol</th>
+                            <th>Amount Purchased</th>
+                            <th>Purchase Rate</th>
+                            <th>Current Rate</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for purchased_coin in user_profile.purchased_coins.all %}
+                            <tr>
+                                <td><img src="{{ purchased_coin.icon_url }}" alt="{{ purchased_coin.name }}" height="50" width="50"></td>
+                                <td>{{ purchased_coin.name }}</td>
+                                <td>{{ purchased_coin.symbol }}</td>
+                                <td>{{ purchased_coin.market_cap|floatformat:2  }}</td>
+                                <td>{{ purchased_coin.rank }}</td>
+                                <td>{{ purchased_coin.price }}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <div style="flex:1">
+                <p>No coins purchased yet.</p>
+            </div>
+        {% endif %}
 
+        {% if payment_history %}
+            <div class="purchased-coins-container">
 
+                <div class="purchased-coins">
+                    <table class="table-container">
+                        <thead>
+                        <tr>
+                            <th colspan="4">Payment History</th>
+                        </tr>
+                        <tr>
+                            <th>Amount</th>
+                            <th>Currency</th>
+                            <th>Payment Date</th>
 
-  </div>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for payment in payment_history %}
+                            <tr>
+                                <td>{{ payment.amount }} USD</td>
+                                <td>{{ payment.currency }}</td>
+                                <td>{{ payment.payment_date }}</td>
 
-  {% if selected_coin %}
-    <div class="buy-coins-form">
-      <h3>Buy {{ selected_coin.name }} ({{ selected_coin.symbol }})</h3>
-      {% if buy_coins_form %}
-        <form method="post" >
-          {% csrf_token %}
-          {{ buy_coins_form.amount.label_tag }} {{ buy_coins_form.amount }}
-          <p>Price per unit: {{ selected_coin.price }}</p>
-          <p id="total-amount">Total Amount: $0.00</p>
-          <button type="submit">Buy</button>
-        </form>
-        <script>
-          document.getElementById('id_amount').addEventListener('input', function () {
-            var amount = parseFloat(this.value);
-            var pricePerUnit = parseFloat('{{ selected_coin.price }}'.replace(',', '').replace('$', ''));
-            var totalAmount = isNaN(amount) ? 0 : amount * pricePerUnit;
-            document.getElementById('total-amount').textContent = 'Total Amount: $' + totalAmount.toFixed(2);
-          });
-        </script>
-      {% else %}
-        <p>No form available for buying coins.</p>
-      {% endif %}
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        {% else %}
+            <div style="flex:1">
+                <p>No payment history available.</p>
+            </div>
+        {% endif %}
     </div>
 
-
-      {% if payment_history %}
-  <h2>Payment History</h2>
-  <ul>
-    {% for payment in payment_history %}
-      <li>
-        Amount: {{ payment.amount }} USD<br>
-        Currency: {{ payment.currency }}<br>
-        Payment Date: {{ payment.payment_date }}<br>
-        Captured Transaction ID: {{ payment.captured_transaction_id }}<br>
-      </li>
-    {% endfor %}
-  </ul>
-{% else %}
-  <p>No payment history available.</p>
-{% endif %}
-  {% endif %}
 {% endblock %}

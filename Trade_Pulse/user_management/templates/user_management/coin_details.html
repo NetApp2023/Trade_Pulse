@@ -163,8 +163,10 @@
     </table>
 </div>
 
-    <script>
-  var coinDetails = {{ coin_details|safe }};
+ <script>
+  var coinDetailsName = "{{ coin_name|safe }}";
+
+  console.log(coinDetailsName)
   if (!coinDetails) {
     // Handle the case where coinDetails is not defined
     console.error("Error: coinDetails is not defined.");
@@ -198,13 +200,13 @@
     const fiatCurrency = document.getElementById('fiatCurrency').value;
 
     // Fetch real-time conversion rates from CoinGecko API
-    const apiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coinDetails.name}&vs_currencies=${fiatCurrency}`;
+    const apiUrl = `https://api.coingecko.com/api/v3/simple/price?ids=${coinDetailsName}&vs_currencies=${fiatCurrency}`;
     const response = await fetch(apiUrl);
     const data = await response.json();
 
     // Check if the response structure is as expected
-    if (data[coinDetails.name.toLowerCase()] && data[coinDetails.name.toLowerCase()][fiatCurrency] !== undefined) {
-        const coinToCurrencyRate = data[coinDetails.name.toLowerCase()][fiatCurrency];
+    if (data[coinDetailsName.toLowerCase()] && data[coinDetailsName.toLowerCase()][fiatCurrency] !== undefined) {
+        const coinToCurrencyRate = data[coinDetailsName.toLowerCase()][fiatCurrency];
         const convertedAmount = (coinAmount * coinToCurrencyRate).toFixed(2);
 
         // Display the converted amount

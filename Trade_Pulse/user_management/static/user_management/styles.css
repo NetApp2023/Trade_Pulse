@@ -3,11 +3,8 @@
 body {
     font-family: 'Arial', sans-serif;
     background-color: #fff;
-    padding: 0;
     color: #333;
-    min-height: 100vh;
     position: relative;
-    margin: 0 0 50px;
 }
 
 header {
@@ -63,6 +60,7 @@ nav li:first-child {
 section {
     text-align: center;
     padding: 20px;
+    margin-bottom: 50px;
 }
 
 footer {

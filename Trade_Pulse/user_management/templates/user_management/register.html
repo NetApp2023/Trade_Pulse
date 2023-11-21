@@ -4,93 +4,105 @@
 {% load static %}
 
 {% block content %}
-  <head>
-    <style>
-      h2 {
-        color: #6a5acd;
-        text-align: center; /* Center the heading */
-      }
+    <head>
+        <style>
+            h2 {
+                color: #6a5acd;
+                text-align: center; /* Center the heading */
+            }
 
-      form {
-        max-width: 400px;
-        margin: auto;
-        background-color: #f9f9f9; /* Form background color */
-        padding: 20px;
-        border: 1px solid #ddd; /* Form border */
-        border-radius: 8px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Form shadow */
-      }
+            form {
+                max-width: 400px;
+                margin: auto;
+                background-color: #f9f9f9; /* Form background color */
+                padding: 20px;
+                border: 1px solid #ddd; /* Form border */
+                border-radius: 8px;
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Form shadow */
+                text-align: left;
+            }
 
-      label {
-        display: block;
-        margin-bottom: 8px;
-        color: #6a5acd; /* Label color */
-      }
+            label {
+                display: block;
+                margin-bottom: 8px;
+                color: #6a5acd; /* Label color */
+            }
 
-      input,
-      #id_id_photo {
-        width: calc(100% - 16px);
-        padding: 8px;
-        margin-bottom: 15px;
-        box-sizing: border-box;
-        border: 1px solid #ccc; /* Input border */
-        border-radius: 5px;
-      }
+            input,
+            #id_id_photo {
+                width: calc(100% - 16px);
+                padding: 8px;
+                margin-bottom: 15px;
+                box-sizing: border-box;
+                border: 1px solid #ccc; /* Input border */
+                border-radius: 5px;
+            }
 
-      .error-message {
-        color: red;
-        margin-top: -10px;
-        margin-bottom: 10px;
-        font-size: 14px; /* Adjust font size */
-      }
+            .error-message {
+                color: red;
+                margin-top: -20px;
+                margin-left: -20px;
+                margin-bottom: 10px;
+                font-size: 14px; /* Adjust font size */
+                text-align: left;
+            }
 
-      button {
-        width: 100%;
-        background-color: #6a5acd;
-        color: white;
-        padding: 10px 0; /* Adjust vertical padding */
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-      }
-    </style>
-    <title>Register</title>
-  </head>
+            button {
+                width: 100%;
+                background-color: #6a5acd;
+                color: white;
+                padding: 10px 0; /* Adjust vertical padding */
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+            }
+        </style>
+        <title>Register</title>
+    </head>
 
-  <h2>Register</h2>
-  <form method="post" action="{% url 'registration' %}" enctype="multipart/form-data">
-    {% csrf_token %}
+    <h2>Register</h2>
+    <form method="post" action="{% url 'registration' %}" enctype="multipart/form-data">
+        {% csrf_token %}
 
-    <!-- Apply styles to individual form elements -->
-    <div>
-      <label for="{{ user_form.username.id_for_label }}">Username</label>
-      {{ user_form.username }}
-    </div>
+        <!-- Apply styles to individual form elements -->
+        <div>
+            <label for="{{ user_form.username.id_for_label }}">Username</label>
+            {{ user_form.username }}
+            {% if user_form.errors.username %}
+                <div class="error-message">{{ user_form.errors.username }}</div>
+            {% endif %}
+        </div>
 
-    <div>
-      <label for="{{ user_form.email.id_for_label }}">Email</label>
-      {{ user_form.email }}
-    </div>
+        <div>
+            <label for="{{ user_form.email.id_for_label }}">Email</label>
+            {{ user_form.email }}
+            {% if user_form.errors.email %}
+                <div class="error-message">{{ user_form.errors.email }}</div>
+            {% endif %}
+        </div>
 
-    <div>
-      <label for="{{ user_form.password1.id_for_label }}">Password</label>
-      {{ user_form.password1 }}
-    </div>
+        <div>
+            <label for="{{ user_form.password1.id_for_label }}">Password</label>
+            {{ user_form.password1 }}
+        </div>
 
-    <div>
-      <label for="{{ user_form.password2.id_for_label }}">Confirm Password</label>
-      {{ user_form.password2 }}
-      {% if user_form.errors.password2 %}
-        <p class="error-message">{{ user_form.errors.password2 }}</p>
-      {% endif %}
-    </div>
+        <div>
+            <label for="{{ user_form.password2.id_for_label }}">Confirm Password</label>
+            {{ user_form.password2 }}
+            {% if user_form.errors.password2 %}
+                <div class="error-message">{{ user_form.errors.password2 }}</div>
+            {% endif %}
+        </div>
 
-    <!-- Include the profile photo field -->
-    <div>
-      <label for="{{ profile_form.id_photo.id_for_label }}">Profile Photo</label>
-      {{ profile_form.id_photo }}
-    </div>
+        <!-- Include the profile photo field -->
+        <div>
+            <label for="{{ profile_form.id_photo.id_for_label }}">Profile Photo</label>
+            {{ profile_form.id_photo }}
+            {% if profile_form.errors.id_photo %}
+                <div class="error-message">{{ profile_form.errors.id_photo }}</div>
+            {% endif %}
+        </div>
 
-    <button type="submit">Register</button>
-  </form>
+        <button type="submit">Register</button>
+    </form>
 {% endblock %}

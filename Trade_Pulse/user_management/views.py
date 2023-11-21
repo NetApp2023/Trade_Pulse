@@ -1,7 +1,6 @@
 import paypalrestsdk
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.db import IntegrityError
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout, login, get_user_model
 from django.utils import timezone
@@ -112,6 +111,71 @@ def forgot_password(request):
     return render(request, 'user_management/forgot_password.html', {'form': form})
 
 
+def fetch_stats():
+    stats = []
+    api_url = "https://api.coinranking.com/v2/stats"
+    response = requests.get(api_url)
+
+    if response.status_code == 200:
+        statsData = response.json().get("data", {})
+        trendingData = response.json().get("data", {}).get("bestCoins", [])
+        newestCoindata = response.json().get("data", {}).get("newestCoins", [])
+
+        trending_coins = []
+        newest_coins = []
+
+        highlights = {
+            'totalCoins': statsData.get('totalCoins', 0),
+            'totalMarkets': statsData.get('totalMarkets', 0),
+            'totalExchanges': statsData.get('totalExchanges', 0),
+            'totalMarketCap': statsData.get('totalMarketCap', 0),
+            'total24hVolume': statsData.get('total24hVolume', 0),
+            'btcDominance': statsData.get('btcDominance', 0)
+        }
+
+        for trendingCoin in trendingData:
+            uuid = trendingCoin.get('uuid', '')
+            symbol = trendingCoin.get('symbol', 'BTS')
+            name = trendingCoin.get('name', '')
+            icon_url = trendingCoin.get('iconUrl', 'https://cdn.coinranking.com/bOabBYkcX/bitcoin_btc.svg')
+            rank = trendingCoin.get('coinrankingUrl', 0)
+
+            trending_coin = {
+                'coin_id': uuid,
+                'name': name,
+                'symbol': symbol,
+                'icon_url': icon_url,
+                'rank': rank,
+            }
+            print(trending_coin)
+            trending_coins.append(trending_coin)
+
+        for newestCoin in newestCoindata:
+            uuid = newestCoin.get('uuid', '')
+            symbol = newestCoin.get('symbol', 'BTS')
+            name = newestCoin.get('name', '')
+            icon_url = newestCoin.get('iconUrl', 'https://cdn.coinranking.com/bOabBYkcX/bitcoin_btc.svg')
+            rank = newestCoin.get('coinrankingUrl', 0)
+
+            newest_coin = {
+                'coin_id': uuid,
+                'name': name,
+                'symbol': symbol,
+                'icon_url': icon_url,
+                'rank': rank,
+            }
+            print(newest_coin)
+            newest_coins.append(newest_coin)
+
+            stats.append(highlights)
+            stats.append(trending_coins)
+            stats.append(newest_coins)
+
+        return stats
+    else:
+        return []
+
+
 def fetch_and_format_currencies():
     coinranking_api_key = "e36c6d68ae02afdfcdc6bba8e8b9ecea12560c1c3840eadf"
     api_url = "https://api.coinranking.com/v2/coins"
@@ -160,14 +224,22 @@ def fetch_and_format_currencies():
 
 
 def home(request):
-
     formatted_currencies = fetch_and_format_currencies()
+
+    stats = fetch_stats()
+    trending_coins = []
+    newest_coins = []
+    highlights = []
+    if stats:
+        highlights = stats[0]
+        trending_coins = stats[1]
+        newest_coins = stats[2]
+
     # Pass all currencies data to the template
     return render(
         request,
-        'user_management/home.html',
-        {'currencies': formatted_currencies}
-    )
+        'user_management/home.html', {'currencies': formatted_currencies, 'highlights': highlights, 'trendings': trending_coins, 'newest': newest_coins})
+    # {'currencies': formatted_currencies, 'highlights': highlights, 'trendings': trending_coins, 'newest': newest_coins }
 
 
 def coin_details(request, coin_id):
@@ -178,10 +250,6 @@ def coin_details(request, coin_id):
     if selected_coin:
         # Remove 'None' values from sparkline data
         sparkline_data = [value for value in selected_coin.get('sparkline') if value is not None]
-
-        # Print cleaned sparkline data to the console
-        print(f"Cleaned sparkline data for coin {coin_id}: {sparkline_data}")
-
         high_price = round(max(map(float, sparkline_data)), 2)
         low_price = round(min(map(float, sparkline_data)), 2)
         average_price = round(sum(map(float, sparkline_data)) / len(sparkline_data), 2) if sparkline_data else 0
@@ -250,6 +318,7 @@ def coin_details(request, coin_id):
                 'user_management/coin_details.html',
                 {
                     'coin_details': selected_coin,
+                    'coin_name': selected_coin['name'],
                     'high_price': high_price,
                     'low_price': low_price,
                     'average_price': average_price,
@@ -264,6 +333,103 @@ def coin_details(request, coin_id):
         # Handle the case where the selected coin is not found
         error_message = f"Coin with ID {coin_id} not found."
         return render(request, 'user_management/coin_details.html', {'error_message': error_message})
+
+
+# @login_required
+# def user_profile(request):
+#     global total_amount, selected_coin_data, pc, payment_history
+#     total_amount = 0
+#     user = request.user
+#     coin_id = request.GET.get('coin_id')
+#     user_profile = UserProfile.objects.get(user=user)
+#     formatted_currencies = fetch_and_format_currencies()
+#     try:
+#         profile_photo = user_profile.id_photo.url
+#
+#         # Get other user details
+#         username = user.username
+#         email = user.email
+#
+#         payment_history = Payment.objects.filter(user=user)
+#         for c in payment_history:
+#             print(c.transaction_id)
+#
+#         # Check if the coin_id parameter is present in the URL
+#         selected_coin_data = next((coin for coin in formatted_currencies if coin['coin_id'] == coin_id), None)
+#
+#         # Handle the buy coins form submission
+#         if request.method == 'POST':
+#             form = BuyCoinsForm(request.POST)
+#             if form.is_valid():
+#                 amount = form.cleaned_data['amount']
+#
+#                 # Check if selected_coin_data is not None
+#                 if selected_coin_data is not None:
+#                     price_per_unit = Decimal(selected_coin_data['price'].replace(',', '').replace('$', ''))
+#                     total_amount = price_per_unit * amount
+#
+#                     # Add the selected coin to the user's purchased coins
+#                     selected_coin, created = Currency.objects.get_or_create(
+#                         uuid=selected_coin_data['coin_id'],
+#                         defaults={
+#                             'symbol': selected_coin_data['symbol'],
+#                             'name': selected_coin_data['name'],
+#                             'color': selected_coin_data['graph_color'],
+#                             'icon_url': selected_coin_data['icon_url'],
+#                             'market_cap': total_amount,  # Set appropriate values or adjust the model
+#                             'price': Decimal(selected_coin_data['price'].replace(',', '').replace('$', '')),
+#                             'listed_at': timezone.now(),
+#                             'tier': 0,  # Set appropriate values or adjust the model
+#                             'change': 0,  # Set appropriate values or adjust the model
+#                             'rank': price_per_unit,  # Set appropriate values or adjust the model
+#                             'sparkline': None,  # Set appropriate values or adjust the model
+#                             'low_volume': False,  # Set appropriate values or adjust the model
+#                             'volume_24hr': 0,  # Set appropriate values or adjust the model
+#                             'btc_price': 0  # Set appropriate values or adjust the model
+#                         }
+#                     )
+#
+#                     try:
+#                         with transaction.atomic():
+#                             user_profile.purchased_coins.add(selected_coin)
+#                             user_profile.save()
+#                             print("UserProfile saved successfully")
+#                     except IntegrityError as e:
+#                         print(f"IntegrityError saving user profile: {e}")
+#
+#                     # Redirect to the payments page after a successful purchase
+#                     return redirect('payment_view', coin_id=coin_id, total_amount=total_amount)
+#                 else:
+#                     messages.error(request, "Invalid coin selected for purchase.")
+#             else:
+#                 messages.error(request, "Invalid form submission.")
+#         else:
+#             form = BuyCoinsForm()
+#
+#         if selected_coin_data is None:
+#             messages.error(request, "Invalid coin selected for purchase.")
+#
+#     except UserProfile.DoesNotExist:
+#         profile_photo = None
+#         form = None
+#         selected_coin = None
+#         username = None
+#         email = None
+#
+#     return render(
+#         request,
+#         'user_management/user_profile.html',
+#         {
+#             'profile_photo': profile_photo,
+#             'buy_coins_form': form,
+#             'total_amount': total_amount,
+#             'selected_coin': selected_coin_data,
+#             'username': username,
+#             'email': email,
+#             'user_profile': user_profile,
+#             'payment_history': payment_history,
+#         }
+#     )
 
 
 @login_required
@@ -282,11 +448,10 @@ def user_profile(request):
         email = user.email
 
         payment_history = Payment.objects.filter(user=user)
-        for c in payment_history:
-            print(c.transaction_id)
 
         # Check if the coin_id parameter is present in the URL
         selected_coin_data = next((coin for coin in formatted_currencies if coin['coin_id'] == coin_id), None)
+        print("SS1", selected_coin_data)
 
         # Handle the buy coins form submission
         if request.method == 'POST':
@@ -296,37 +461,43 @@ def user_profile(request):
 
                 # Check if selected_coin_data is not None
                 if selected_coin_data is not None:
+                    print("SSDATA", selected_coin_data)
                     price_per_unit = Decimal(selected_coin_data['price'].replace(',', '').replace('$', ''))
                     total_amount = price_per_unit * amount
 
-                    # Add the selected coin to the user's purchased coins
-                    selected_coin, created = Currency.objects.get_or_create(
-                        uuid=selected_coin_data['coin_id'],
-                        defaults={
-                            'symbol': selected_coin_data['symbol'],
-                            'name': selected_coin_data['name'],
-                            'color': selected_coin_data['graph_color'],
-                            'icon_url': selected_coin_data['icon_url'],
-                            'market_cap': total_amount,  # Set appropriate values or adjust the model
-                            'price': Decimal(selected_coin_data['price'].replace(',', '').replace('$', '')),
-                            'listed_at': timezone.now(),
-                            'tier': 0,  # Set appropriate values or adjust the model
-                            'change': 0,  # Set appropriate values or adjust the model
-                            'rank': price_per_unit,  # Set appropriate values or adjust the model
-                            'sparkline': None,  # Set appropriate values or adjust the model
-                            'low_volume': False,  # Set appropriate values or adjust the model
-                            'volume_24hr': 0,  # Set appropriate values or adjust the model
-                            'btc_price': 0  # Set appropriate values or adjust the model
-                        }
-                    )
+                    existing_coin = user_profile.purchased_coins.filter(uuid=selected_coin_data['coin_id']).first()
+                    if existing_coin:
+                        # Update the existing coin's amount purchased
+                        existing_coin.market_cap += float(total_amount)
+                        existing_coin.save()
+                    else:
+                        selected_coin, created = Currency.objects.get_or_create(
+                            uuid=selected_coin_data['coin_id'],
+                            defaults={
+                                'symbol': selected_coin_data['symbol'],
+                                'name': selected_coin_data['name'],
+                                'color': selected_coin_data['graph_color'],
+                                'icon_url': selected_coin_data['icon_url'],
+                                'market_cap': total_amount,  # Set appropriate values or adjust the model
+                                'price': Decimal(selected_coin_data['price'].replace(',', '').replace('$', '')),
+                                'listed_at': timezone.now(),
+                                'tier': 0,  # Set appropriate values or adjust the model
+                                'change': 0,  # Set appropriate values or adjust the model
+                                'rank': price_per_unit,  # Set appropriate values or adjust the model
+                                'sparkline': None,  # Set appropriate values or adjust the model
+                                'low_volume': False,  # Set appropriate values or adjust the model
+                                'volume_24hr': 0,  # Set appropriate values or adjust the model
+                                'btc_price': 0  # Set appropriate values or adjust the model
+                            }
+                        )
 
-                    try:
-                        with transaction.atomic():
-                            user_profile.purchased_coins.add(selected_coin)
-                            user_profile.save()
-                            print("UserProfile saved successfully")
-                    except IntegrityError as e:
-                        print(f"IntegrityError saving user profile: {e}")
+                        try:
+                            with transaction.atomic():
+                                user_profile.purchased_coins.add(selected_coin)
+                                user_profile.save()
+                                print("UserProfile saved successfully")
+                        except IntegrityError as e:
+                            print(f"IntegrityError saving user profile: {e}")
 
                     # Redirect to the payments page after a successful purchase
                     return redirect('payment_view', coin_id=coin_id, total_amount=total_amount)

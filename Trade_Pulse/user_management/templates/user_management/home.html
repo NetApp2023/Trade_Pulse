@@ -4,43 +4,101 @@
 {% load static %}
 
 {% block content %}
-  <head>
-    <link rel="stylesheet" href="{% static 'user_management/home.css' %}">
-    <title>Login</title>
-  </head>
-  <div class="currency-table">
-    <table>
-      <thead>
-        <tr>
-          <th>Rank</th>
-          <th>Image</th>
-          <th>Name (Symbol)</th>
-          <th>Price (USD)</th>
-          <th>Market Cap (USD)</th>
-          <th>24Hr</th>
-          <th>Action</th> <!-- New column for Buy button -->
-        </tr>
-      </thead>
-      <tbody>
-        {% for currency in currencies %}
-          <tr onclick="window.location='{% url 'coin_details' coin_id=currency.coin_id %}'" style="cursor: pointer;">
-            <td>{{ currency.rank }}</td>
-            <td><img src="{{ currency.icon_url }}" alt="{{ currency.name_symbol }}" height="30" width="30" /></td>
-            <td>{{ currency.name }}({{ currency.symbol }})</td>
-            <td>{{ currency.price }}</td>
-            <td>{{ currency.market_cap }}</td>
-            <td>
-              <div class="graph-container">
-                <span style="color: {{ currency.graph_color }};">{% if currency.change >= 0 %}+{% endif %}{{ currency.change }}%</span>
-                <div class="line-graph" style="background: linear-gradient(to right, {% if currency.change >= 0 %}#d1f7d1, {% else %}#f7d1d1{% endif %} {{ currency.gradient_start }}%, transparent {{ currency.gradient_start }}%, transparent 100%);"></div>
-              </div>
-            </td>
-            <td>
-              <a {% if not user.is_authenticated %}onclick="alert('You must be a logged in user to buy this coin')" {% endif %} href="{% if user.is_authenticated %}{% url 'user_profile' %}?coin_id={{ currency.coin_id }}{% else %}{% url 'login' %}{% endif %}">Buy</a>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+    <head>
+        <link rel="stylesheet" href="{% static 'user_management/home.css' %}">
+        <title>Login</title>
+    </head>
+
+    <div style="display: flex; align-items: center; justify-content: end;">
+        <h2>Highlights</h2>
+        <label class="switch">
+            <input type="checkbox" id="toggleSwitch" checked>
+            <span class="slider round"></span>
+        </label>
+    </div>
+
+    <div id="recentCoinsCard" style="display: flex; text-align: left">
+{#        {% for i in '123'|make_list %}#}
+
+            <div class="card">
+                <h2>Stats</h2>
+{#                {% for stats in highlights %}#}
+                    <ul id="recentCoinsList">
+                        <!-- Dynamic content will go here -->
+                        <li style="display: flex;align-items: center;"><img src="{% static 'user_management/coins.png' %}" alt="coins" height="30" width="30" /><span class="coinName">Total Coins: {{ highlights.totalCoins }}</span></li>
+                        <li style="display: flex;align-items: center;"><img src="{% static 'user_management/market.png' %}" alt="coins" height="30" width="30" /><span class="coinName">Total Markets: {{ highlights.totalMarkets }}</span></li>
+                        <li style="display: flex;align-items: center;"><img src="{% static 'user_management/exchanges.png' %}" alt="coins" height="30" width="30" /><span class="coinName">Total Exchanges: {{ highlights.totalExchanges }}</span></li>
+                    </ul>
+{#                {% endfor %}#}
+            </div>
+
+            <div class="card">
+                <h2>Trending Coins</h2>
+                {% for coin in trendings %}
+                    <ul id="recentCoinsList">
+                        <!-- Dynamic content will go here -->
+                        <li style="display: flex;align-items: center;"><img src="{{ coin.icon_url }}" alt="{{ coin.symbol }}" height="30" width="30" /><span class="coinName">{{ coin.name }}({{ coin.symbol }})</span> <span class="coinPrice">{{ coin.price }}</span></li>
+                        <!-- Add more list items for additional coins -->
+                    </ul>
+                {% endfor %}
+            </div>
+
+            <div class="card">
+                <h2>Newest Coins</h2>
+                {% for coin in newest %}
+                    <ul id="recentCoinsList">
+                        <!-- Dynamic content will go here -->
+                        <li style="display: flex;align-items: center;"><img src="{{ coin.icon_url }}" alt="{{ coin.symbol }}" height="30" width="30" /><span class="coinName">{{ coin.name }}({{ coin.symbol }})</span> <span class="coinPrice">{{ coin.price }}</span></li>
+                        <!-- Add more list items for additional coins -->
+                    </ul>
+                {% endfor %}
+            </div>
+{#        {% endfor %}#}
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleSwitch = document.getElementById('toggleSwitch');
+            const recentCoinsCard = document.getElementById('recentCoinsCard');
+
+            toggleSwitch.addEventListener('change', function () {
+                recentCoinsCard.style.display = this.checked ? 'flex' : 'none';
+            });
+        });
+    </script>
+
+    <div class="currency-table">
+        <table>
+            <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Image</th>
+                <th>Name (Symbol)</th>
+                <th>Price (USD)</th>
+                <th>Market Cap (USD)</th>
+                <th>24Hr</th>
+                <th>Action</th> <!-- New column for Buy button -->
+            </tr>
+            </thead>
+            <tbody>
+            {% for currency in currencies %}
+                <tr onclick="window.location='{% url 'coin_details' coin_id=currency.coin_id %}'" style="cursor: pointer;">
+                    <td>{{ currency.rank }}</td>
+                    <td><img src="{{ currency.icon_url }}" alt="{{ currency.name_symbol }}" height="30" width="30" /></td>
+                    <td>{{ currency.name }}({{ currency.symbol }})</td>
+                    <td>{{ currency.price }}</td>
+                    <td>{{ currency.market_cap }}</td>
+                    <td>
+                        <div class="graph-container">
+                            <span style="color: {{ currency.graph_color }};">{% if currency.change >= 0 %}+{% endif %}{{ currency.change }}%</span>
+                            <div class="line-graph" style="background: linear-gradient(to right, {% if currency.change >= 0 %}#d1f7d1, {% else %}#f7d1d1{% endif %} {{ currency.gradient_start }}%, transparent {{ currency.gradient_start }}%, transparent 100%);"></div>
+                        </div>
+                    </td>
+                    <td>
+                        <a {% if not user.is_authenticated %}onclick="alert('You must be a logged in user to buy this coin')" {% endif %} href="{% if user.is_authenticated %}{% url 'user_profile' %}?coin_id={{ currency.coin_id }}{% else %}{% url 'login' %}{% endif %}">Buy</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
 {% endblock %}

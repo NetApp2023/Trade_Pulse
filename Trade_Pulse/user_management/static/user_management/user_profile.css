@@ -4,10 +4,8 @@
 
 .profile-details {
   display: flex;
-  padding: 0px 40px 40px;
-  margin: 0px 30px 30px;
+  padding: 0px 20px 0px 20px;
   flex-direction: column;
-  align-items: center;
 }
 
 .profile-photo {
@@ -16,20 +14,23 @@
 
 .user-details {
 
-  text-align: center;
+  text-align: left;
 }
 
 .purchased-coins-container {
     flex: 1;
-    margin: 20px auto 20px 50px;
+    margin: 20px auto 20px 20px;
     overflow-x: auto;
     overflow-y: auto;
 }
 
 .purchased-coins {
-    width: 80%;
     border-collapse: collapse;
     margin: 0 auto;
+}
+
+.purchased-coins .table-container {
+       width: 100%;
 }
 
 .purchased-coins th, .purchased-coins td {
@@ -53,10 +54,13 @@
 
 .buy-coins-form {
   background-color: #f9f9f9;
-  padding: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-  margin-top: 20px;
+  flex: 1;
+  text-align: left;
+  display: flex;
 }
 
 .buy-coins-form h3 {
