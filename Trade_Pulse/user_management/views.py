@@ -8,12 +8,14 @@ from .models import UserProfile, Wallet, Purchase, Crypto
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
 
+@login_required()
 def home(request):
     wallet, created = Wallet.objects.get_or_create(user=request.user)
     cryptos = Crypto.objects.all()
     return render(request, 'user_management/home.html', {'wallet': wallet, 'cryptos': cryptos})
 
 
+@login_required()
 def base(request):
     wallet = Wallet.objects.first()
     return render(request, 'user_management/base.html', {'wallet': wallet})
@@ -67,6 +69,7 @@ def buy_crypto(request, crypto_id):
     })
 
 
+@login_required()
 def sell_crypto(request, crypto_id):
     crypto = get_object_or_404(Crypto, pk=crypto_id)
     wallet, created = Wallet.objects.get_or_create(user=request.user)  # Get the wallet for the logged-in user
@@ -167,7 +170,6 @@ def logout_view(request):
     return redirect('home')
 
 
-@login_required
 def base(request):
     user = request.user
 
