@@ -4,9 +4,9 @@ from django.urls import path
 from .views import home, registration, login_view, logout_view, base, add_money, buy_crypto, sell_crypto
 
 urlpatterns = [
-    path('', home, name='home'),
+    path('', login_view, name='login'),
     path('register/', registration, name='registration'),
-    path('login/', login_view, name='login'),
+    path('home/', home, name='home'),
     path('logout/', logout_view, name='logout'),
     path('addmoney', add_money, name='add_money'),
     path('buy_crypto/<int:crypto_id>', buy_crypto, name='buy_crypto'),

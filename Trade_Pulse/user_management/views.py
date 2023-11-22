@@ -8,7 +8,7 @@ from .models import UserProfile, Wallet, Purchase, Crypto
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
 
-@login_required()
+@login_required
 def home(request):
     wallet, created = Wallet.objects.get_or_create(user=request.user)
     cryptos = Crypto.objects.all()
@@ -167,7 +167,7 @@ def login_view(request):
 @login_required
 def logout_view(request):
     logout(request)
-    return redirect('home')
+    return redirect('login')
 
 
 def base(request):
