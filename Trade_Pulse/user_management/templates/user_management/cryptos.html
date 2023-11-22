@@ -1,0 +1,27 @@
+{% extends 'user_management/base.html' %}
+
+{% block content %}
+     <div class="container">
+        <h1>Cryptocurrencies</h1>
+        <table class="crypto-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Price</th>
+                    <th></th> <!-- Empty header for the Buy button -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for crypto in cryptos %}
+                <tr>
+                    <td><img class="crypto-logo" src="{{ crypto.logo.url }}" alt="{{ crypto.name }}"></td>
+                    <td><a href="{% url 'crypto_detail' crypto.id %}">{{ crypto.name }}</a></td>
+                    <td>${{ crypto.price_usd }}</td>
+                    <td><a href="{% url 'buy_crypto' crypto.id %}" class="buy-button">Buy</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

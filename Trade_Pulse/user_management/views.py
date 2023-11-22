@@ -1,11 +1,19 @@
+import os
+
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout, login, get_user_model
+from matplotlib import pyplot as plt
+
 from .forms import RegistrationForm, UserProfileForm, CustomForgotPasswordForm
-from .models import UserProfile, Currency
+from .models import UserProfile, Currency, Cryptocurrency, CryptoPriceHistory
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
+
+import os
+from django.conf import settings
 import requests
 
 
@@ -109,61 +117,73 @@ formatted_currencies = []
 
 def home(request):
     # Your CoinRanking API key
-    coinranking_api_key = "e36c6d68ae02afdfcdc6bba8e8b9ecea12560c1c3840eadf"
+    # coinranking_api_key = "e36c6d68ae02afdfcdc6bba8e8b9ecea12560c1c3840eadf"
 
     # Fetch data from CoinCap API
-    api_url = "https://api.coinranking.com/v2/coins"
-    response = requests.get(api_url)
+    # api_url = "https://api.coinranking.com/v2/coins"
+    # response = requests.get(api_url)
+    #
+    # if response.status_code == 200:
+    #     data = response.json().get("data", {}).get("coins", [])
+    #
+    #     # Clear existing Currency data
+    #     Currency.objects.all().delete()
+    #
+    #     # Create Currency objects with data from the CoinCap API
+    #     for coin in data:
+    #         coin_id = coin.get('uuid', '')
+    #         name = coin.get('name', '')
+    #         symbol = coin.get('symbol', 'BTS')
+    #         icon_url = coin.get('iconUrl', 'https://cdn.coinranking.com/bOabBYkcX/bitcoin_btc.svg')
+    #         rank = coin.get('rank', 0)
+    #         price = float(coin.get('price', 0) or 0)
+    #         market_cap = float(coin.get('marketCap', 0) or 0)
+    #         change = float(coin.get('change', 0) or 0)
+    #         sparkline = coin.get('sparkline', [])
+    #         gradient_start = 50 + change / 2
+    #
+    #         # Calculate the percentage change and set the graph color
+    #         graph_color = 'green' if change >= 0 else 'red'
+    #
+    #         # Format currency values
+    #         formatted_currency = {
+    #             'coin_id': coin_id,
+    #             'name': name,
+    #             'symbol': symbol,
+    #             'icon_url': icon_url,
+    #             'rank': rank,
+    #             'price': "${}".format(round(price, 2)),
+    #             'market_cap': "${:.2f} billion".format(market_cap / 1e9),
+    #             'change': change,
+    #             'graph_color': graph_color,
+    #             'sparkline': sparkline,
+    #             'gradient_start': gradient_start,
+    #         }
+    #
+    #         formatted_currencies.append(formatted_currency)
+    #
+    #     # Pass all currencies data to the template
+    #     return render(
+    #         request,
+    #         'user_management/home.html',
+    #         {'currencies': formatted_currencies}
+    #     )
+    # else:
+    #     # Handle API error
+    #     error_message = f"Failed to fetch data from CoinCap API. Status Code: {response.status_code}"
+    #     return render(request, 'user_management/home.html', {'error_message': error_message})
 
-    if response.status_code == 200:
-        data = response.json().get("data", {}).get("coins", [])
+    cryptos = Cryptocurrency.objects.all().order_by('-price_usd')
+    for coin in cryptos:
+        coin.price_usd = coin.price_usd.normalize()
+    return render(request, 'user_management/cryptos.html', {'cryptos': cryptos})
 
-        # Clear existing Currency data
-        Currency.objects.all().delete()
 
-        # Create Currency objects with data from the CoinCap API
-        for coin in data:
-            coin_id = coin.get('uuid', '')
-            name = coin.get('name', '')
-            symbol = coin.get('symbol', 'BTS')
-            icon_url = coin.get('iconUrl', 'https://cdn.coinranking.com/bOabBYkcX/bitcoin_btc.svg')
-            rank = coin.get('rank', 0)
-            price = float(coin.get('price', 0) or 0)
-            market_cap = float(coin.get('marketCap', 0) or 0)
-            change = float(coin.get('change', 0) or 0)
-            sparkline = coin.get('sparkline', [])
-            gradient_start = 50 + change / 2
-
-            # Calculate the percentage change and set the graph color
-            graph_color = 'green' if change >= 0 else 'red'
-
-            # Format currency values
-            formatted_currency = {
-                'coin_id': coin_id,
-                'name': name,
-                'symbol': symbol,
-                'icon_url': icon_url,
-                'rank': rank,
-                'price': "${}".format(round(price, 2)),
-                'market_cap': "${:.2f} billion".format(market_cap / 1e9),
-                'change': change,
-                'graph_color': graph_color,
-                'sparkline': sparkline,
-                'gradient_start': gradient_start,
-            }
-
-            formatted_currencies.append(formatted_currency)
-
-        # Pass all currencies data to the template
-        return render(
-            request,
-            'user_management/home.html',
-            {'currencies': formatted_currencies}
-        )
-    else:
-        # Handle API error
-        error_message = f"Failed to fetch data from CoinCap API. Status Code: {response.status_code}"
-        return render(request, 'user_management/home.html', {'error_message': error_message})
+def buy_crypto(request, crypto_id):
+    crypto = Cryptocurrency.objects.get(id=crypto_id)
+    # For simplicity, let's assume the user buys 1 unit of the crypto
+    usd_value = crypto.price_usd
+    return render(request, 'user_management/purchase_confirmation.html', {'crypto': crypto, 'usd_value': usd_value})
 
 
 def coin_details(request, coin_id):
@@ -185,10 +205,33 @@ def coin_details(request, coin_id):
         return render(
             request,
             'user_management/coin_details.html',
-            {'coin_details': selected_coin,'high_price':high_price,'low_price':low_price,'average_price':average_price, 'cleaned_sparkline_data': sparkline_data }
+            {'coin_details': selected_coin, 'high_price': high_price, 'low_price': low_price,
+             'average_price': average_price, 'cleaned_sparkline_data': sparkline_data}
         )
     else:
         # Handle the case where the selected coin is not found
         error_message = f"Coin with ID {coin_id} not found."
         return render(request, 'user_management/coin_details.html', {'error_message': error_message})
 
+
+def crypto_detail(request, crypto_id):
+    cryptocurrency = get_object_or_404(Cryptocurrency, id=crypto_id)
+    price_history = CryptoPriceHistory.objects.filter(cryptocurrency=cryptocurrency).order_by('date')[:5]
+
+    # Generate the graph
+    dates = [entry.date for entry in price_history]
+    prices = [entry.price_usd for entry in price_history]
+
+    plt.figure()
+    plt.plot(dates, prices)
+    plt.title(f'Price History for {cryptocurrency.name}')
+    plt.xlabel('Date')
+    plt.ylabel('Price in USD')
+
+    # Save the graph as an image
+    graph_filename = f"{cryptocurrency.name}_price_history.png"
+    graph_path = os.path.join(settings.MEDIA_ROOT, graph_filename)
+    plt.savefig(graph_path)
+
+    return render(request, 'user_management/crypto_detail.html',
+                  {'cryptocurrency': cryptocurrency, 'graph_url': settings.MEDIA_URL + graph_filename})

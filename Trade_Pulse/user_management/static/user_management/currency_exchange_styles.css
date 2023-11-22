@@ -68,7 +68,7 @@ footer {
     color: white;
     text-align: center;
     padding: 5px;
-    position: relative;
+    position: fixed;
     bottom: 0;
     width: 100%;
 }
@@ -96,6 +96,13 @@ footer p {
 }
 
 /*currency exchange*/
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
 
 .container {
     width: 80%;

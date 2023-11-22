@@ -45,3 +45,33 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     id_photo = models.ImageField(upload_to='id_photos/', blank=True, null=True)
     # Add other profile-related fields
+
+
+class Cryptocurrency(models.Model):
+    name = models.CharField(max_length=50)
+    logo = models.ImageField(upload_to='media/cryptocurrency_logos/')
+    price_usd = models.DecimalField(max_digits=15, decimal_places=10)
+
+    def __str__(self):
+        return f"{self.name} ({self.logo})"
+
+
+class ExchangeRate(models.Model):
+    currency = models.CharField(max_length=3, default='BTC')
+    rate = models.DecimalField(max_digits=15, decimal_places=2)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.currency} to USD: {self.rate}"
+
+
+class CryptoPriceHistory(models.Model):
+    cryptocurrency = models.ForeignKey(Cryptocurrency, on_delete=models.CASCADE)
+    date = models.DateField()
+    price_usd = models.DecimalField(max_digits=15, decimal_places=10)
+
+    def __str__(self):
+        return f"{self.cryptocurrency.name} Price on {self.date}: {self.price_usd} USD"
+
+    class Meta:
+        unique_together = ('cryptocurrency', 'date')

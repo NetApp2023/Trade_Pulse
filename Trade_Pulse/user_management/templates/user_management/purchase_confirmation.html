@@ -1,0 +1,19 @@
+{% extends 'user_management/base.html' %}
+{% load static %}
+
+{% block content %}
+    <div class="purchase-container">
+        <div class="confirmation-card">
+            <img src="{% static 'user_management/success-icon.jpg' %}" alt="Success" class="success-icon">
+            <h1>Thank You for Your Purchase!</h1>
+            <p>Your order to buy <strong>{{ amount }} {{ crypto.name }}</strong> has been placed successfully.</p>
+            <p class="confirmation-detail">Transaction ID: <span class="transaction-id">{{ transaction_id }}</span></p>
+            <p>Total Cost: <strong>${{ total_cost }}</strong></p>
+
+            <div class="actions">
+                <a href= "/home" class="action-button">Back to Market</a>
+{#                <a href="{% url 'view_transactions' %}" class="action-button">View Transactions</a>#}
+            </div>
+        </div>
+    </div>
+{% endblock %}

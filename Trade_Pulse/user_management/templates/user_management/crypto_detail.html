@@ -1,0 +1,8 @@
+{% extends 'user_management/base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>{{ cryptocurrency.name }} Price History</h1>
+    <img src="{{ graph_url }}" alt="Price History Graph">
+</div>
+{% endblock %}
