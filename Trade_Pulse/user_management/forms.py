@@ -55,3 +55,13 @@ class CustomForgotPasswordForm(PasswordResetForm):
         return cleaned_data
 
 
+class AddMoneyForm(forms.Form):
+    amount = forms.IntegerField(label='Amount', min_value=0)
+
+
+class BuyCryptoForm(forms.Form):
+    quantity = forms.DecimalField(label='No: of Coins', min_value=0.0001)
+
+
+class SellCryptoForm(forms.Form):
+    quantity = forms.DecimalField(label='Coins to be Sold', min_value=0.0001)

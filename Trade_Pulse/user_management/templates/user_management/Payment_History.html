@@ -17,16 +17,7 @@
 
         <nav>
             <ul>
-            <li><form method="get" action="">
-                <label for="currency">Choose a currency:</label>
-                <select name="currency" id="currency" onchange="this.form.submit()">
-                <option value="CAD" {% if requested_currency_code == 'CAD' %}selected{% endif %}>CAD</option>
-                <option value="EUR" {% if requested_currency_code == 'EUR' %}selected{% endif %}>EUR</option>
-                <option value="INR" {% if requested_currency_code == 'INR' %}selected{% endif %}>INR</option>
-                </select>
-                </form></li>
                 <li><a href="{% url 'home' %}">Home</a></li>
-
                 {% if user.is_authenticated %}
                     <!-- If user is authenticated, show username and "Logout" link -->
                     <li style="font-weight: bold">Hello, {{ user.username }}!</li>
@@ -48,35 +39,37 @@
         </nav>
     </header>
 
-    <section>
+
+        <section>
         <div class="container">
-        <h1>Cryptocurrencies</h1>
-        <table class="crypto-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Price in Requested Currency</th>
-                    <th>Buy/Sell</th> <!-- Empty header for the Buy button -->
-                </tr>
-            </thead>
-            <tbody>
-                {% for crypto in cryptos %}
-                <tr>
-                    <td><img class="crypto-logo" src="{{ crypto.logo.url }}" alt="{{ crypto.name }}"></td>
-                    <td><a href="{% url 'crypto_detail' crypto.name %}">{{ crypto.name }}</a></td>
-                    <td>${{ crypto.price_usd | floatformat:2 }}</td>
-                    <td>{{ crypto.converted_price | floatformat:2 }}</td>
-                    <td><a href="{% url 'buy_crypto' crypto.id %}" class="buy-button">Buy</a>
-                        <a href="{% url 'sell_crypto' crypto.id %}" class="buy-button">Sell</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+        <h1>Transactions</h1>
+    <table class="crypto-table">
+        <thead>
+            <tr>
+                <th>Txn_ID</th>
+                <th>Crypto</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Purchase Date</th>
+                <th>Transaction</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in purchases %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ purchase.crypto.name }}</td>
+                <td>{{ purchase.quantity }}</td>
+                <td>{{ purchase.purchase_price }}</td>
+                <td>{{ purchase.purchase_date }}</td>  <!-- Display the purchase_date field -->
+                <td>{{ purchase.transaction_type }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+        </div>
     </section>
+
 
     <footer>
         <p>&copy; 2023 Trade Pulse. All rights reserved.</p>

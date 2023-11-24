@@ -1,5 +1,6 @@
 from datetime import datetime
 
+from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -52,8 +53,12 @@ class Cryptocurrency(models.Model):
     logo = models.ImageField(upload_to='media/cryptocurrency_logos/')
     price_usd = models.DecimalField(max_digits=15, decimal_places=10)
 
-    def __str__(self):
-        return f"{self.name} ({self.logo})"
+    def price_in_currency(self, currency_code):
+        try:
+            exchange_rate = ExchangeRate.objects.get(currency=currency_code).rate
+            return self.price_usd * exchange_rate
+        except ExchangeRate.DoesNotExist:
+            return None
 
 
 class ExchangeRate(models.Model):
@@ -75,3 +80,27 @@ class CryptoPriceHistory(models.Model):
 
     class Meta:
         unique_together = ('cryptocurrency', 'date')
+
+
+class Wallet(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wallet')
+    amount = models.PositiveIntegerField(default=0)
+
+    def _str_(self):
+        return f"Wallet with {self.amount} units"
+
+
+class Purchase(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='purchases')
+    crypto = models.ForeignKey(Cryptocurrency, on_delete=models.CASCADE, related_name='purchases')
+    quantity = models.DecimalField(max_digits=19, decimal_places=2)
+    purchase_price = models.DecimalField(max_digits=10, decimal_places=2)
+    purchase_date = models.DateTimeField(auto_now_add=True)
+    TRANSACTION_TYPE_CHOICES = [
+        ('buy', 'Buy'),
+        ('sell', 'Sell'),
+    ]
+    transaction_type = models.CharField(max_length=4, choices=TRANSACTION_TYPE_CHOICES, default="NULL")
+
+    def _str_(self):
+        return f"{self.quantity} quantity of {self.crypto.name} bought at ${self.purchase_price} each"
