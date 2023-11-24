@@ -7,7 +7,7 @@ from .forms import RegistrationForm, UserProfileForm, AddMoneyForm, BuyCryptoFor
 from .models import UserProfile, Wallet, Purchase, Crypto
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 
-
+@login_required
 def home(request):
     wallet, created = Wallet.objects.get_or_create(user=request.user)
     cryptos = Crypto.objects.all()
@@ -52,7 +52,8 @@ def buy_crypto(request, crypto_id):
                     user=request.user,
                     crypto=crypto,
                     quantity=quantity,
-                    purchase_price=crypto.price,
+                    purchase_price=total_cost,
+                    transaction_type="Bought"
                 )
                 return redirect('home')  # Adjust the 'payment:home' to your project's URL name
             else:
@@ -83,6 +84,14 @@ def sell_crypto(request, crypto_id):
                 total_revenue = quantity_to_sell * crypto.price
                 wallet.amount += total_revenue
                 wallet.save()
+
+                Purchase.objects.create(
+                    user=request.user,
+                    crypto=crypto,
+                    quantity=quantity_to_sell,
+                    purchase_price=total_revenue,
+                    transaction_type="Sold"
+                )
 
                 # Update the Purchase records for the current user. This logic assumes that you sell the oldest purchases first.
                 purchases = Purchase.objects.filter(user=request.user, crypto=crypto).order_by('purchase_date')
@@ -179,3 +188,8 @@ def base(request):
         profile_photo = None
 
     return render(request, 'user_management/base.html', {'profile_photo': profile_photo})
+@login_required
+def Payment_History(request):
+    purchases = Purchase.objects.all()
+    context = {'purchases': purchases}
+    return render(request, 'user_management/Payment_History.html', context)

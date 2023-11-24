@@ -1,7 +1,8 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
-from .views import home, registration, login_view, logout_view, base, add_money, buy_crypto, sell_crypto
+from .views import home, registration, login_view, logout_view, base, add_money, buy_crypto, sell_crypto, \
+    Payment_History
 
 urlpatterns = [
     path('', home, name='home'),
@@ -10,7 +11,8 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('addmoney', add_money, name='add_money'),
     path('buy_crypto/<int:crypto_id>', buy_crypto, name='buy_crypto'),
-    path('sell_crypto/<int:crypto_id>', sell_crypto, name='sell_crypto')
+    path('sell_crypto/<int:crypto_id>', sell_crypto, name='sell_crypto'),
+    path('Payment_History/', Payment_History, name = 'Payment_History')
     # Add other URL patterns as needed
 ]
 

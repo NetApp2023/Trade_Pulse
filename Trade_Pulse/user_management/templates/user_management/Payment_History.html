@@ -1,0 +1,30 @@
+<!-- payment_history.html -->
+{% extends 'user_management/base.html' %}
+{% load static %}
+{% block content %}
+    <h1>Transactions</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>Txn_ID</th>
+                <th>Crypto</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Purchase Date</th>
+                <th>Transaction</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for purchase in purchases %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ purchase.crypto }}</td>
+                <td>{{ purchase.quantity }}</td>
+                <td>{{ purchase.purchase_price }}</td>
+                <td>{{ purchase.purchase_date }}</td>  <!-- Display the purchase_date field -->
+                <td>{{ purchase.transaction_type }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
