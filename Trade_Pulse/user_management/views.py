@@ -135,7 +135,6 @@ def home(request):
     currencies = Currency.objects.all()
     currency_rates = {currency.code: currency.rate_to_usd for currency in currencies}
     rate_to_usd = currency_rates.get(requested_currency, 1)  # Default conversion rate
-    print("rate_to_usd : ",rate_to_usd)
     for crypto in cryptos:
         crypto.price_usd = crypto.price_usd * rate_to_usd
         crypto.market_cap = crypto.market_cap * rate_to_usd
@@ -147,109 +146,6 @@ def home(request):
         'currencies': currencies
         # 'wallet': wallet  # Make sure this name matches the template
     })
-
-
-def coin_details(request, coin_id):
-    # Retrieve the selected coin details from the request
-    selected_coin = next((coin for coin in formatted_currencies if coin['coin_id'] == coin_id), None)
-
-    if selected_coin:
-        # Remove 'None' values from sparkline data
-        sparkline_data = [value for value in selected_coin.get('sparkline') if value is not None]
-
-        # Print cleaned sparkline data to the console
-        print(f"Cleaned sparkline data for coin {coin_id}: {sparkline_data}")
-
-        high_price = round(max(map(float, sparkline_data)), 2)
-        low_price = round(min(map(float, sparkline_data)), 2)
-        average_price = round(sum(map(float, sparkline_data)) / len(sparkline_data), 2) if sparkline_data else 0
-
-        # Pass the selected coin details and cleaned sparkline data to the template
-        return render(
-            request,
-            'user_management/coin_details.html',
-            {'coin_details': selected_coin, 'high_price': high_price, 'low_price': low_price,
-             'average_price': average_price, 'cleaned_sparkline_data': sparkline_data}
-        )
-    else:
-        # Handle the case where the selected coin is not found
-        error_message = f"Coin with ID {coin_id} not found."
-        return render(request, 'user_management/coin_details.html', {'error_message': error_message})
-
-
-def fetch_and_format_currencies():
-    coinranking_api_key = "e36c6d68ae02afdfcdc6bba8e8b9ecea12560c1c3840eadf"
-    api_url = "https://api.coinranking.com/v2/coins"
-    response = requests.get(api_url)
-
-    if response.status_code == 200:
-        data = response.json().get("data", {}).get("coins", [])
-        formatted_currencies = []
-
-        # Create Currency objects with data from the CoinCap API
-        for coin in data:
-            coin_id = coin.get('uuid', '')
-            name = coin.get('name', '')
-            symbol = coin.get('symbol', 'BTS')
-            icon_url = coin.get('iconUrl', 'https://cdn.coinranking.com/bOabBYkcX/bitcoin_btc.svg')
-            rank = coin.get('rank', 0)
-            price = float(coin.get('price', 0) or 0)
-            market_cap = float(coin.get('marketCap', 0) or 0)
-            change = float(coin.get('change', 0) or 0)
-            sparkline = coin.get('sparkline', [])
-            gradient_start = 50 + change / 2
-
-            # Calculate the percentage change and set the graph color
-            graph_color = 'green' if change >= 0 else 'red'
-
-            # Format currency values
-            formatted_currency = {
-                'coin_id': coin_id,
-                'name': name,
-                'symbol': symbol,
-                'icon_url': icon_url,
-                'rank': rank,
-                'price': "${}".format(round(price, 2)),
-                'market_cap': "${:.2f} billion".format(market_cap / 1e9),
-                'change': change,
-                'graph_color': graph_color,
-                'sparkline': sparkline,
-                'gradient_start': gradient_start,
-            }
-
-            formatted_currencies.append(formatted_currency)
-
-        return formatted_currencies
-    else:
-        return []  # Return an empty list or handle the error accordingly
-
-
-def crypto_detail(request, crypto_name):
-    formatted_currencies = fetch_and_format_currencies()
-    # Retrieve the selected coin details from the request
-    selected_coin = next((coin for coin in formatted_currencies if coin['name'] == crypto_name), None)
-
-    if selected_coin:
-        # Remove 'None' values from sparkline data
-        sparkline_data = [value for value in selected_coin.get('sparkline') if value is not None]
-        high_price = round(max(map(float, sparkline_data)), 2)
-        low_price = round(min(map(float, sparkline_data)), 2)
-        average_price = round(sum(map(float, sparkline_data)) / len(sparkline_data), 2) if sparkline_data else 0
-        print(sparkline_data)
-
-        return render(
-            request,
-            'user_management/crypto_detail.html',
-            {
-                'coin_details': selected_coin,
-                'coin_name': selected_coin['name'],
-                'high_price': high_price,
-                'low_price': low_price,
-                'average_price': average_price,
-                'cleaned_sparkline_data': sparkline_data,
-            }
-        )
-
 
 @login_required
 def add_money(request):
