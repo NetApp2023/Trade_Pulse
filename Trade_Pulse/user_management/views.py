@@ -17,7 +17,6 @@ import matplotlib.dates as mdates
 from django.shortcuts import render
 import requests
 
-
 from .forms import RegistrationForm, UserProfileForm, CustomForgotPasswordForm, AddMoneyForm, SellCryptoForm, \
     BuyCryptoForm
 from .models import UserProfile, Currency, Cryptocurrency, CryptoPriceHistory, Wallet, Purchase
@@ -78,21 +77,12 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('base')
 
 
-@login_required
 def base(request):
-    user = request.user
-
-    try:
-        user_profile = UserProfile.objects.get(user=user)
-        profile_photo = user_profile.id_photo.url
-
-    except UserProfile.DoesNotExist:
-        profile_photo = None
-
-    return render(request, 'user_management/base.html', {'profile_photo': profile_photo})
+    crypto_info = Cryptocurrency.objects.all().order_by('-price_usd')
+    return render(request, 'user_management/base.html', {'cryptos': crypto_info})
 
 
 def forgot_password(request):
@@ -127,9 +117,9 @@ def forgot_password(request):
 formatted_currencies = []
 
 
-# @login_required
+@login_required
 def home(request):
-    # wallet, created = Wallet.objects.get_or_create(user=request.user)
+    wallet, created = Wallet.objects.get_or_create(user=request.user)
     requested_currency = request.GET.get('currency', 'CAD')
     cryptos = Cryptocurrency.objects.all().order_by('-price_usd')
     currencies = Currency.objects.all()
@@ -143,31 +133,34 @@ def home(request):
     return render(request, 'user_management/cryptos.html', {
         'cryptos': cryptos,
         'requested_currency_code': requested_currency,
-        'currencies': currencies
-        # 'wallet': wallet  # Make sure this name matches the template
+        'currencies': currencies,
+        'wallet': wallet  # Make sure this name matches the template
     })
+
 
 @login_required
 def add_money(request):
     wallet, created = Wallet.objects.get_or_create(user=request.user)
+    msg = ""
     if request.method == 'POST':
         form = AddMoneyForm(request.POST)
         if form.is_valid():
             amount = int(form.cleaned_data.get('amount'))
             wallet.amount += amount
             wallet.save()
-            return redirect('home')  # Redirect to a success page or home
+            msg = "Wallet Top-Up Success"
+        else:
+            msg = "Wallet Top-Up Failed. Please check the form inputs."
     else:
         form = AddMoneyForm()
 
-    return render(request, 'user_management/add_money.html', {'form': form, 'wallet': wallet})
-
+    return render(request, 'user_management/add_money.html', {'form': form, 'wallet': wallet, 'msg': msg})
 
 @login_required
 def buy_crypto(request, crypto_id):
     crypto = get_object_or_404(Cryptocurrency, pk=crypto_id)
     wallet, created = Wallet.objects.get_or_create(user=request.user)  # Get the wallet for the logged-in user
-
+    buy_msg = ''
     if request.method == 'POST':
         form = BuyCryptoForm(request.POST)
         if form.is_valid():
@@ -185,6 +178,7 @@ def buy_crypto(request, crypto_id):
                 )
                 return redirect('home')  # Adjust the 'payment:home' to your project's URL name
             else:
+                buy_msg = "Insufficient funds in your wallet."
                 form.add_error(None, 'Insufficient funds in your wallet.')
     else:
         form = BuyCryptoForm()
@@ -192,7 +186,8 @@ def buy_crypto(request, crypto_id):
     return render(request, 'user_management/buy.html', {
         'crypto': crypto,
         'wallet': wallet,
-        'form': form
+        'form': form,
+        'msg': buy_msg
     })
 
 
@@ -200,6 +195,7 @@ def buy_crypto(request, crypto_id):
 def sell_crypto(request, crypto_id):
     crypto = get_object_or_404(Cryptocurrency, pk=crypto_id)
     wallet, created = Wallet.objects.get_or_create(user=request.user)  # Get the wallet for the logged-in user
+    sell_msg = ''
 
     # Retrieve the total quantity owned by summing all purchases for the current user
     aggregated = Purchase.objects.filter(user=request.user, crypto=crypto).aggregate(total_quantity=Sum('quantity'))
@@ -213,19 +209,13 @@ def sell_crypto(request, crypto_id):
                 total_revenue = quantity_to_sell * crypto.price_usd
                 wallet.amount += total_revenue
                 wallet.save()
-                Purchase.objects.create(
-                    user=request.user,
-                    crypto=crypto,
-                    quantity=quantity_to_sell,
-                    purchase_price=total_revenue,
-                    transaction_type="Sold"
-                )
 
                 # Update the Purchase records for the current user. This logic assumes that you sell the oldest purchases first.
                 purchases = Purchase.objects.filter(user=request.user, crypto=crypto).order_by('purchase_date')
                 for purchase in purchases:
                     if quantity_to_sell <= purchase.quantity:
                         purchase.quantity -= quantity_to_sell
+                        purchase.transaction_type = 'Sold'
                         purchase.save()
                         break
                     else:
@@ -236,9 +226,11 @@ def sell_crypto(request, crypto_id):
                             purchase.delete()  # Optionally delete the purchase if quantity is zero
 
                 # Redirect to a success page or home
-                return redirect('home')  # Adjust the URL name to your project's home URL name
+                return redirect('home')
+                # Adjust the URL name to your project's home URL name
             else:
                 # Handle case where user tries to sell more than they own
+                sell_msg = "Insufficient Number of Coins"
                 form.add_error(None, 'You cannot sell more than you own.')
     else:
         form = SellCryptoForm()
@@ -247,7 +239,8 @@ def sell_crypto(request, crypto_id):
         'crypto': crypto,
         'wallet': wallet,
         'form': form,
-        'total_quantity_owned': total_quantity_owned
+        'total_quantity_owned': total_quantity_owned,
+        'msg': sell_msg
     })
 
 
@@ -258,6 +251,7 @@ def Payment_History(request):
     context = {'purchases': purchases,
                'wallet': wallet}
     return render(request, 'user_management/Payment_History.html', context)
+
 
 def currency_view(request):
     requested_currency_code = request.GET.get('currency', 'USD')  # Default to USD if no currency selected
@@ -273,6 +267,7 @@ def currency_view(request):
         'requested_currency_code': requested_currency_code
     })
 
+
 def convert_currency(amount, currency_code):
     # Your currency conversion logic here
     # This will depend on how you're able to retrieve conversion rates
@@ -280,12 +275,12 @@ def convert_currency(amount, currency_code):
     conversion_rate = get_conversion_rate(currency_code)
     return amount * conversion_rate
 
+
 def get_conversion_rate(currency_code):
     # Retrieve the conversion rate for the given currency code
     # This is a placeholder for the actual rate retrieval logic
     rates = {'USD': 1, 'CAD': 0.8, 'EUR': 1.2, 'INR': 0.014}  # Example rates
     return rates.get(currency_code, 1)  # Default to 1 if currency not found
-
 
 
 def generate_price_history_graph(request, crypto_id):

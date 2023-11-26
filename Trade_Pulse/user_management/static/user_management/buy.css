@@ -1,0 +1,167 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #fff;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    background-color: #6a5acd;
+    padding: 20px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header img {
+    height: 50px;
+}
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+nav li {
+    margin-right: 20px;
+}
+
+nav a {
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+nav li:last-child {
+    margin-right: 0;
+    margin-left: auto;
+}
+
+nav img {
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+nav li:first-child {
+    margin-right: 10px;
+    margin-left: -10px;
+}
+
+footer {
+    background-color: #6a5acd;
+    color: white;
+    text-align: center;
+    padding: 10px 0;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+footer p {
+    color: white;
+}
+
+/* Main Content Styles */
+/* Overall content area */
+.content-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 15px;
+    min-height: calc(100vh - (50 + 50)); /* Replace with actual header and footer height */
+}
+
+/* The form container itself */
+.content {
+    width: 100%; /* Full width of the content area */
+    max-width: 500px; /* Maximum form width */
+}
+
+/* The form styling */
+.top-up-form {
+    background: #FFF; /* White background */
+    padding: 30px; /* Spacing inside the form */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow for depth */
+    border: 1px solid #ccc; /* Light border for definition */
+    text-align: left; /* Align text to the left */
+    margin: auto; /* Center the form in the content area */
+}
+
+.top-up-form h2 {
+    text-align: center; /* Center the title */
+    color: #333; /* Dark font color for the title */
+    margin-bottom: 20px; /* Spacing after the title */
+}
+
+.top-up-form h4 {
+    text-align: center; /* Center the title */
+    color: #333; /* Dark font color for the title */
+    margin-bottom: 20px; /* Spacing after the title */
+}
+
+.top-up-form p {
+    text-align: left; /* Center the price information */
+    color: red; /* Lighter font color for the price */
+    margin-bottom: 20px; /* Spacing after the price information */
+}
+
+.top-up-form label {
+    display: block; /* Make the label a block to occupy its own line */
+    margin-bottom: 5px; /* Space below the label */
+}
+
+.top-up-form input[type="number"] {
+    width: calc(100% - 20px); /* Full width of the form minus padding */
+    padding: 10px; /* Padding inside the input */
+    margin-bottom: 20px; /* Space below the input */
+    border: 1px solid #ccc; /* Light border for the input */
+    border-radius: 4px; /* Rounded corners for the input */
+}
+
+.top-up-form .buy-button {
+    display: block; /* Make the button a block element to occupy its own line */
+    width: 100%; /* Button to occupy the full width of the form */
+    padding: 10px 0; /* Padding inside the button */
+    background-color: #6a5acd; /* Background color of the button */
+    color: white; /* Text color of the button */
+    border: none; /* No border for the button */
+    border-radius: 4px; /* Rounded corners for the button */
+    cursor: pointer; /* Cursor to indicate button is clickable */
+    transition: background-color 0.3s; /* Transition for the hover effect */
+    margin-top: 10px; /* Spacing above the button */
+}
+
+.top-up-form .buy-button:hover {
+    background-color: #5a4ab8; /* Darker shade on hover for the button */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    nav ul {
+        flex-direction: column;
+    }
+
+    nav li {
+        margin: 10px 0;
+    }
+
+    .content {
+        padding: 20px;
+    }
+
+    .form-container {
+        padding: 1rem;
+        max-width: 100%;
+    }
+}
