@@ -1,10 +1,13 @@
-<!-- registration.html -->
+<!-- templates/base.html -->
 
-{% extends 'user_management/base.html' %}
 {% load static %}
 
-{% block content %}
-  <head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'user_management/styles.css' %}">
     <style>
       h2 {
         color: #6a5acd;
@@ -56,6 +59,20 @@
     </style>
     <title>Register</title>
   </head>
+<body>
+    <header>
+        <img src="{% static 'user_management/trade_pulse_logo.png' %}" alt="Trade Pulse Logo" height="100">
+
+        <nav>
+            <ul>
+                    <li><a href="{% url 'registration' %}">Sign Up</a></li>
+                    <li><a href="{% url 'login' %}">Sign In</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section>
+
 
   <h2>Register</h2>
   <form method="post" action="{% url 'registration' %}" enctype="multipart/form-data">
@@ -93,4 +110,11 @@
 
     <button type="submit">Register</button>
   </form>
-{% endblock %}
+
+    </section>
+
+    <footer>
+        <p>&copy; 2023 Trade Pulse. All rights reserved.</p>
+    </footer>
+</body>
+</html>

@@ -25,7 +25,7 @@
                 <option value="INR" {% if requested_currency_code == 'INR' %}selected{% endif %}>INR</option>
                 </select>
                 </form></li>
-                <li><a href="{% url 'home' %}">Home</a></li>
+                <li><a href="{% url 'base' %}">Home</a></li>
 
                 {% if user.is_authenticated %}
                     <!-- If user is authenticated, show username and "Logout" link -->
@@ -58,6 +58,9 @@
                     <th>Name</th>
                     <th>Price</th>
                     <th>Price in Requested Currency</th>
+                    <th>Market Cap</th>
+                    <th>Volume</th>
+                    <th>Circulating Supply</th>
                     <th>Buy/Sell</th> <!-- Empty header for the Buy button -->
                 </tr>
             </thead>
@@ -66,8 +69,11 @@
                 <tr>
                     <td><img class="crypto-logo" src="{{ crypto.logo.url }}" alt="{{ crypto.name }}"></td>
                     <td><a href="{% url 'crypto_detail' crypto.name %}">{{ crypto.name }}</a></td>
-                    <td>${{ crypto.price_usd | floatformat:2 }}</td>
+                    <td>$ {{ crypto.price_usd | floatformat:2 }}</td>
                     <td>{{ crypto.converted_price | floatformat:2 }}</td>
+                    <td>$ {{ crypto.market_cap }}</td>
+                    <td>$ {{ crypto.volume }}</td>
+                    <td>$ {{ crypto.supply }}</td>
                     <td><a href="{% url 'buy_crypto' crypto.id %}" class="buy-button">Buy</a>
                         <a href="{% url 'sell_crypto' crypto.id %}" class="buy-button">Sell</a>
                     </td>

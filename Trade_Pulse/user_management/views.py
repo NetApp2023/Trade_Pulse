@@ -67,21 +67,12 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('base')
 
 
-@login_required
 def base(request):
-    user = request.user
-
-    try:
-        user_profile = UserProfile.objects.get(user=user)
-        profile_photo = user_profile.id_photo.url
-
-    except UserProfile.DoesNotExist:
-        profile_photo = None
-
-    return render(request, 'user_management/base.html', {'profile_photo': profile_photo})
+    crypto_info = Cryptocurrency.objects.all().order_by('-price_usd')
+    return render(request, 'user_management/base.html', {'cryptos': crypto_info})
 
 
 def forgot_password(request):
@@ -301,7 +292,6 @@ def sell_crypto(request, crypto_id):
                 Purchase.objects.create(
                     user=request.user,
                     crypto=crypto,
-                    quantity=quantity_to_sell,
                     purchase_price=total_revenue,
                     transaction_type="Sold"
                 )

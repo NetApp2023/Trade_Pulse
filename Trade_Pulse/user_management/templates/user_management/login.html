@@ -1,8 +1,30 @@
-{% extends 'user_management/base.html' %}
+<!-- templates/base.html -->
+
 {% load static %}
 
-{% block content %}
-  <head>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trade Pulse{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'user_management/styles.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <img src="{% static 'user_management/trade_pulse_logo.png' %}" alt="Trade Pulse Logo" height="100">
+
+        <nav>
+            <ul>
+                    <li><a href="{% url 'registration' %}">Sign Up</a></li>
+                    <li><a href="{% url 'login' %}">Sign In</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <section>
+        <head>
       <link rel="stylesheet" href="{% static 'user_management/login.css' %}">
     <title>Login</title>
   </head>
@@ -33,4 +55,11 @@
      <div class="forgot-password">
     <a href="{% url 'forgot_password' %}">Forgot Password?</a>
   </div>
-{% endblock %}
+    </section>
+
+    <footer>
+        <p>&copy; 2023 Trade Pulse. All rights reserved.</p>
+    </footer>
+</body>
+</html>
+

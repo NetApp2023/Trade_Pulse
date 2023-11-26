@@ -52,6 +52,9 @@ class Cryptocurrency(models.Model):
     name = models.CharField(max_length=50)
     logo = models.ImageField(upload_to='media/cryptocurrency_logos/')
     price_usd = models.DecimalField(max_digits=15, decimal_places=10)
+    market_cap = models.PositiveIntegerField(null=True)
+    volume = models.PositiveIntegerField(null=True)
+    supply = models.PositiveIntegerField(null=True)
 
     def price_in_currency(self, currency_code):
         try:
