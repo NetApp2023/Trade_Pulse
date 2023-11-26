@@ -1,0 +1,60 @@
+<!-- templates/base.html -->
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trade Pulse{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'user_management/styles.css' %}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <header>
+        <img src="{% static 'user_management/trade_pulse_logo.png' %}" alt="Trade Pulse Logo" height="100">
+
+        <nav>
+            <ul>
+                <li><a href="{% url 'home' %}">Home</a></li>
+                {% if user.is_authenticated %}
+                    <!-- If user is authenticated, show username and "Logout" link -->
+                    <li style="font-weight: bold">Hello, {{ user.username }}!</li>
+                    {% if user.userprofile.id_photo.url %}
+                        <!-- Display the user's profile photo if available -->
+                        <li><img src="{{  user.userprofile.id_photo.url }}" alt="Profile Photo" height="50"></li>
+                    {% endif %}
+                     <li><a href="{% url 'Payment_History' %}">Transactions</a></li>
+                    <li><a href="{% url 'add_money' %}" class="wallet-icon">&#x1F4B0;</a></li>
+                    <li>{{ wallet.amount }}</li>
+                    <li><a href="{% url 'logout' %}">Logout</a></li>
+                {% else %}
+                    <!-- If user is not authenticated, show "Sign Up" and "Sign In" links -->
+                    <li><a href="{% url 'registration' %}">Sign Up</a></li>
+                    <li><a href="{% url 'login' %}">Sign In</a></li>
+                {% endif %}
+                <!-- Add other navigation links as needed -->
+            </ul>
+        </nav>
+    </header>
+
+
+        <section>
+        <form method="post" class="top-up-form">
+                {% csrf_token %}
+                <h2>Sell {{ crypto.name }}</h2>
+                <p>Current Price: ${{ crypto.price_usd | floatformat:2}}</p>
+                <p>Available Quantity: {{  }}</p>
+                <label for="id_quantity">Quantity to sell</label>
+                <input type="number" id="id_quantity" name="quantity" min="0" required>
+                <button type="submit" class="submit-btn">Sell</button>
+            </form>
+    </section>
+
+
+    <footer>
+        <p>&copy; 2023 Trade Pulse. All rights reserved.</p>
+    </footer>
+</body>
+</html>

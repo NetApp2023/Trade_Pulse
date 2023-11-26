@@ -1,4 +1,6 @@
-/* static/user_management/styles.css */
+header, footer {
+    z-index: 1000; /* This should be higher than the z-index of other elements */
+}
 
 body {
     font-family: 'Arial', sans-serif;
@@ -8,6 +10,8 @@ body {
     color: #333;
     min-height: 100vh;
     position: relative;
+    padding-top: 100px; /* Height of the header plus some extra space */
+    padding-bottom: 50px; /* Height of the footer plus some extra space */
 }
 
 header {
@@ -17,6 +21,10 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: fixed;
+    top:0;
+    width:97%;
+
 }
 
 header img {
@@ -77,4 +85,180 @@ footer {
 
 footer p {
     color: white;
+}
+
+.market-stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 20px;
+}
+
+.stat-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    transition: transform 0.3s ease-in-out;
+}
+
+.stat-card:hover {
+    transform: scale(1.05);
+}
+
+/*currency exchange*/
+
+.container {
+    width: 80%;
+    margin: 20px auto;
+    text-align: center;
+    table-layout: fixed;
+}
+
+.crypto-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.crypto-table thead {
+    background-color: #ffffff;
+    color: #333333;
+}
+
+.crypto-table th,
+.crypto-table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+    vertical-align: middle; /* Aligns content vertically in the middle */
+}
+
+.crypto-table tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.crypto-table img.crypto-logo {
+    width: 24px;
+    height: 24px;
+    vertical-align: middle;
+    margin-right: 10px;
+}
+
+.buy-button {
+    padding: 8px 16px;
+    background-color: #4CAF50; /* Green background */
+    color: white;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 16px;
+    border-radius: 4px;
+    margin-left: 10px;
+    white-space: nowrap;
+}
+
+.sell-button {
+    padding: 8px 16px;
+    background-color: lightcoral; /* Green background */
+    color: white;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 16px;
+    border-radius: 4px;
+    margin-left: 10px;
+    white-space: nowrap;
+}
+
+
+
+.buy-button:hover {
+    background-color: #45a049; /* Darker green background */
+}
+
+.sell-button:hover {
+    background-color: firebrick; /* Darker green background */
+}
+
+/*purhcase confirmation*/
+
+.purchase-container {
+    width: 100%;
+    max-width: 600px;
+    margin: 50px auto;
+    text-align: center;
+}
+
+.confirmation-card {
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.success-icon {
+    width: 50px;
+    height: auto;
+    margin: 0 auto 20px;
+}
+
+.confirmation-detail {
+    font-size: 0.9em;
+    color: #666;
+    margin: 10px 0;
+}
+
+.transaction-id {
+    font-weight: bold;
+    color: #333;
+}
+
+.actions {
+    margin-top: 30px;
+}
+
+.action-button {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 10px;
+    border-radius: 5px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+.action-button:hover {
+    background-color: #0056b3;
+}
+
+/*****select button currency**********/
+
+.currency-dropdown {
+    margin-right: 1000px; /* Adjust this value as needed */
+}
+
+.select-currency {
+    appearance: none;
+    background: transparent;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px 10px;
+    padding-right: 30px; /* Make room for the custom arrow */
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 5px center;
+    background-size: 12px;
+    color: #000; /* Or any color you want */
+}
+
+.select-currency:focus {
+    outline: none;
+}
+
+/* Style options */
+.select-currency option {
+    padding: 5px;
 }
