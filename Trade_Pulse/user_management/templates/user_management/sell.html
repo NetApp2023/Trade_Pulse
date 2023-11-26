@@ -46,7 +46,7 @@
                 {% csrf_token %}
                 <h2>Sell {{ crypto.name }}</h2>
                 <h4>Current Price: ${{ crypto.price_usd | floatformat:2}}</h4>
-                <h4>Available Quantity: {{ total_quantity_owned }}</h4>
+                <h4>Available Coins: {{ total_quantity_owned }}</h4>
                 <label for="id_quantity">Quantity to sell</label>
                 <input type="number" id="id_quantity" name="quantity" min="0" required>
                 <p>{{ msg }}</p>
