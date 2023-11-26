@@ -2,7 +2,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path, include
 from .views import home, registration, login_view, logout_view, forgot_password, coin_details, buy_crypto, \
-    crypto_detail, add_money, sell_crypto, Payment_History, base
+    crypto_detail, add_money, sell_crypto, Payment_History, base, feedback_view
 
 urlpatterns = [
     path('', base, name='base'),
@@ -17,7 +17,8 @@ urlpatterns = [
     path('addmoney', add_money, name='add_money'),
     path('buy_crypto/<int:crypto_id>', buy_crypto, name='buy_crypto'),
     path('sell_crypto/<int:crypto_id>', sell_crypto, name='sell_crypto'),
-    path('Payment_History/', Payment_History, name='Payment_History')
+    path('Payment_History/', Payment_History, name='Payment_History'),
+    path('feedback/',feedback_view, name='feedback_view')
 
 ]
 

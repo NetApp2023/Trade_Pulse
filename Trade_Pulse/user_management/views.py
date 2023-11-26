@@ -6,10 +6,11 @@ from django.db import IntegrityError
 from django.db.models import Sum
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout, login, get_user_model
+from django.utils import timezone
 
 from .forms import RegistrationForm, UserProfileForm, CustomForgotPasswordForm, AddMoneyForm, SellCryptoForm, \
-    BuyCryptoForm
-from .models import UserProfile, Currency, Cryptocurrency, CryptoPriceHistory, Wallet, Purchase
+    BuyCryptoForm, FeedbackForm
+from .models import UserProfile, Currency, Cryptocurrency, CryptoPriceHistory, Wallet, Purchase, Feedback
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 
@@ -246,6 +247,7 @@ def add_money(request):
 def buy_crypto(request, crypto_id):
     crypto = get_object_or_404(Cryptocurrency, pk=crypto_id)
     wallet, created = Wallet.objects.get_or_create(user=request.user)  # Get the wallet for the logged-in user
+    p_date = timezone.now()
     buy_msg = ''
     if request.method == 'POST':
         form = BuyCryptoForm(request.POST)
@@ -255,12 +257,16 @@ def buy_crypto(request, crypto_id):
             if wallet.amount >= total_cost:
                 wallet.amount -= total_cost
                 wallet.save()
+
+
                 Purchase.objects.create(
                     user=request.user,
                     crypto=crypto,
                     quantity=quantity,
+                    trans_quantity=quantity,
                     purchase_price=total_cost,
-                    transaction_type="Bought"
+                    transaction_type="Bought",
+                    purchase_date = p_date
                 )
                 return redirect('home')  # Adjust the 'payment:home' to your project's URL name
             else:
@@ -286,6 +292,7 @@ def sell_crypto(request, crypto_id):
     # Retrieve the total quantity owned by summing all purchases for the current user
     aggregated = Purchase.objects.filter(user=request.user, crypto=crypto).aggregate(total_quantity=Sum('quantity'))
     total_quantity_owned = aggregated.get('total_quantity', 0) or 0
+    p_date = timezone.now()
 
     if request.method == 'POST':
         form = SellCryptoForm(request.POST)
@@ -296,12 +303,22 @@ def sell_crypto(request, crypto_id):
                 wallet.amount += total_revenue
                 wallet.save()
 
+                Purchase.objects.create(
+                    user=request.user,
+                    crypto=crypto,
+                    trans_quantity=quantity_to_sell,
+                    purchase_price=total_revenue,
+                    transaction_type="Sold",
+                    purchase_date=p_date
+                )
+
+
                 # Update the Purchase records for the current user. This logic assumes that you sell the oldest purchases first.
                 purchases = Purchase.objects.filter(user=request.user, crypto=crypto).order_by('purchase_date')
                 for purchase in purchases:
                     if quantity_to_sell <= purchase.quantity:
                         purchase.quantity -= quantity_to_sell
-                        purchase.transaction_type = 'Sold'
+                        #purchase.transaction_type = 'Sold'
                         purchase.save()
                         break
                     else:
@@ -337,3 +354,14 @@ def Payment_History(request):
     context = {'purchases': purchases,
                'wallet': wallet}
     return render(request, 'user_management/Payment_History.html', context)
+
+@login_required
+def feedback_view(request):
+    if request.method == 'POST':
+        form = FeedbackForm(request.POST)
+        if form.is_valid():
+            form.save()
+    else:
+        form = FeedbackForm()
+    feedback_msg = Feedback.objects.all()
+    return render(request, 'user_management/feedback_form.html', {'form': form,'feedback_msg':feedback_msg})
