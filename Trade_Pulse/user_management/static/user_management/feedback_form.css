@@ -1,0 +1,140 @@
+header {
+    background-color: #6a5acd;
+    padding: 20px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header img {
+    height: 50px;
+}
+
+nav ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+}
+
+nav li {
+    margin-right: 20px;
+}
+
+nav a {
+    text-decoration: none;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+nav li:last-child {
+    margin-right: 0;
+    margin-left: auto;
+}
+
+nav img {
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+nav li:first-child {
+    margin-right: 10px;
+    margin-left: -10px;
+}
+
+footer {
+    background-color: #6a5acd;
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+    position: fixed;
+    width: 100%;
+    bottom: 0;
+}
+
+footer p {
+    color: white;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #fff;
+    margin: 0;
+    padding: 0;
+    color: #333;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.content-wrapper {
+    padding: 2% 0; /* Add top and bottom padding */
+}
+
+.content {
+    background: #f9f9f9;
+    padding: 2em;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+input[type='text'],
+input[type='email'],
+textarea {
+    width: 100%; /* Full width */
+    padding: 15px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box; /* Include padding in the width */
+}
+
+textarea {
+    height: 150px; /* Larger field for message input */
+}
+
+form p {
+    margin-bottom: 0.5em;
+}
+
+label {
+    display: block;
+    margin-bottom: .5em;
+    color: #333;
+    font-weight: bold;
+}
+
+.comments-container {
+    background: #fff;
+    padding: 1em;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-top: 2em;
+}
+
+.comment {
+    background-color: #f9f9f9;
+    padding: 1em;
+    margin-bottom: 1em;
+    border-left: 4px solid #5cb85c;
+    border-radius: 4px;
+}
+
+.comment p {
+    font-size: 0.95em;
+    line-height: 1.5;
+    color: #555; /* Softer color for text */
+}
+
+.comment strong {
+    color: #333; /* Darker color for name to stand out */
+}

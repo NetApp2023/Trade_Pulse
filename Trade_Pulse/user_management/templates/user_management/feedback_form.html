@@ -1,0 +1,67 @@
+<!-- templates/base.html -->
+
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Trade Pulse{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'user_management/feedback_form.css' %}">
+</head>
+<body>
+    <header>
+        <img src="{% static 'user_management/trade_pulse_logo.png' %}" alt="Trade Pulse Logo" height="100">
+
+        <nav>
+            <ul>
+                <li><a href="{% url 'home' %}">Home</a></li>
+                {% if user.is_authenticated %}
+                    <!-- If user is authenticated, show username and "Logout" link -->
+                    <li style="font-weight: bold">Hello, {{ user.username }}!</li>
+                    {% if user.userprofile.id_photo.url %}
+                        <!-- Display the user's profile photo if available -->
+                        <li><img src="{{  user.userprofile.id_photo.url }}" alt="Profile Photo" height="50"></li>
+                    {% endif %}
+                     <li><a href="{% url 'Payment_History' %}">Transactions</a></li>
+                    <li><a href="{% url 'add_money' %}" class="wallet-icon">&#x1F4B0;</a>{{ wallet.amount }}</li>
+                    <li><a href="{% url 'logout' %}">Logout</a></li>
+                {% else %}
+                    <!-- If user is not authenticated, show "Sign Up" and "Sign In" links -->
+                    <li><a href="{% url 'registration' %}">Sign Up</a></li>
+                    <li><a href="{% url 'login' %}">Sign In</a></li>
+                {% endif %}
+                <!-- Add other navigation links as needed -->
+            </ul>
+        </nav>
+    </header>
+
+
+    <div class="content-wrapper">
+        <div class="content">
+            <!-- Your form and other content here -->
+            <h2>Add your insights</h2>
+<form method="post" action="{% url 'feedback_view' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Submit</button>
+</form>
+        </div>
+    </div>
+
+  <div class="comments-container">
+    <h2>Comments ({{ feedback_msg|length }})</h2>
+    {% for feedback in feedback_msg %}
+      <div class="comment">
+        <p><strong>{{ feedback.name }}</strong> said: {{ feedback.message }}</p>
+      </div>
+    {% endfor %}
+  </div>
+
+
+    <footer>
+        <p>&copy; 2023 Trade Pulse. All rights reserved.</p>
+    </footer>
+</body>
+</html>
