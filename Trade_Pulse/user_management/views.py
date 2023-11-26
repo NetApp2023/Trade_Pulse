@@ -289,18 +289,13 @@ def sell_crypto(request, crypto_id):
                 total_revenue = quantity_to_sell * crypto.price_usd
                 wallet.amount += total_revenue
                 wallet.save()
-                Purchase.objects.create(
-                    user=request.user,
-                    crypto=crypto,
-                    purchase_price=total_revenue,
-                    transaction_type="Sold"
-                )
 
                 # Update the Purchase records for the current user. This logic assumes that you sell the oldest purchases first.
                 purchases = Purchase.objects.filter(user=request.user, crypto=crypto).order_by('purchase_date')
                 for purchase in purchases:
                     if quantity_to_sell <= purchase.quantity:
                         purchase.quantity -= quantity_to_sell
+                        purchase.transaction_type = 'Sold'
                         purchase.save()
                         break
                     else:
