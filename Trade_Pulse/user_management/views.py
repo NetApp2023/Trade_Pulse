@@ -1,11 +1,22 @@
+import json
 import os
+from datetime import datetime, timedelta
+from io import BytesIO
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError
 from django.db.models import Sum
+from django.http import HttpResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import logout, login, get_user_model
+import matplotlib.pyplot as plt
+import base64
+import matplotlib.dates as mdates
+
+from django.shortcuts import render
+import requests
+
 
 from .forms import RegistrationForm, UserProfileForm, CustomForgotPasswordForm, AddMoneyForm, SellCryptoForm, \
     BuyCryptoForm
@@ -116,17 +127,25 @@ def forgot_password(request):
 formatted_currencies = []
 
 
-@login_required
+# @login_required
 def home(request):
-    wallet, created = Wallet.objects.get_or_create(user=request.user)
+    # wallet, created = Wallet.objects.get_or_create(user=request.user)
     requested_currency = request.GET.get('currency', 'CAD')
     cryptos = Cryptocurrency.objects.all().order_by('-price_usd')
+    currencies = Currency.objects.all()
+    currency_rates = {currency.code: currency.rate_to_usd for currency in currencies}
+    rate_to_usd = currency_rates.get(requested_currency, 1)  # Default conversion rate
+    print("rate_to_usd : ",rate_to_usd)
     for crypto in cryptos:
-        crypto.converted_price = crypto.price_in_currency(requested_currency)
+        crypto.price_usd = crypto.price_usd * rate_to_usd
+        crypto.market_cap = crypto.market_cap * rate_to_usd
+        crypto.volume = crypto.volume * rate_to_usd
+
     return render(request, 'user_management/cryptos.html', {
         'cryptos': cryptos,
         'requested_currency_code': requested_currency,
-        'wallet': wallet  # Make sure this name matches the template
+        'currencies': currencies
+        # 'wallet': wallet  # Make sure this name matches the template
     })
 
 
@@ -343,3 +362,69 @@ def Payment_History(request):
     context = {'purchases': purchases,
                'wallet': wallet}
     return render(request, 'user_management/Payment_History.html', context)
+
+def currency_view(request):
+    requested_currency_code = request.GET.get('currency', 'USD')  # Default to USD if no currency selected
+    cryptos = Cryptocurrency.objects.all()  # Assuming you have a model named Crypto
+
+    for crypto in cryptos:
+        crypto.converted_price = convert_currency(crypto.price_usd, requested_currency_code)
+        crypto.market_cap = convert_currency(crypto.market_cap, requested_currency_code)
+        crypto.volume = convert_currency(crypto.volume, requested_currency_code)
+
+    return render(request, 'your_template.html', {
+        'cryptos': cryptos,
+        'requested_currency_code': requested_currency_code
+    })
+
+def convert_currency(amount, currency_code):
+    # Your currency conversion logic here
+    # This will depend on how you're able to retrieve conversion rates
+    # Maybe you have a pre-defined dictionary of rates or use an API
+    conversion_rate = get_conversion_rate(currency_code)
+    return amount * conversion_rate
+
+def get_conversion_rate(currency_code):
+    # Retrieve the conversion rate for the given currency code
+    # This is a placeholder for the actual rate retrieval logic
+    rates = {'USD': 1, 'CAD': 0.8, 'EUR': 1.2, 'INR': 0.014}  # Example rates
+    return rates.get(currency_code, 1)  # Default to 1 if currency not found
+
+
+
+def generate_price_history_graph(request, crypto_id):
+    crypto = Cryptocurrency.objects.get(pk=crypto_id)
+
+    price_history = crypto.price_history
+
+    timestamps = [datetime.fromtimestamp(item['timestamp']) for item in price_history]
+    prices = [float(item['price']) for item in price_history]
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(timestamps, prices, linestyle='-', color='blue')
+
+    # Clean up the x-axis dates
+    plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
+
+    # Set limits for x-axis to add padding on both sides
+    plt.xlim(min(timestamps) - timedelta(days=1), max(timestamps) + timedelta(days=1))
+
+    plt.xlabel('Date')
+    plt.ylabel('Price (USD)')
+    plt.title(f'{crypto.name} Price History')
+    plt.grid(True)
+
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png', bbox_inches='tight')  # 'bbox_inches' ensures no cut-off
+    plt.close()
+
+    # Encode the buffer's contents in base64
+    graph_data = base64.b64encode(buffer.getvalue()).decode('utf-8')
+
+    # Render the graph template with context data
+    context = {
+        'crypto_name': crypto.name,
+        'graph_data': graph_data,
+    }
+    return render(request, 'user_management/graph.html', context)

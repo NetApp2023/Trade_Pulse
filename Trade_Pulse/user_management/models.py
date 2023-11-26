@@ -3,28 +3,44 @@ from datetime import datetime
 from django.conf import settings
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import JSONField
 
+
+# class Currency(models.Model):
+#     uuid = models.CharField(max_length=50, unique=True, default=0)
+#     symbol = models.CharField(max_length=10, default='BTS')
+#     name = models.CharField(max_length=255, default='Bitcoin')
+#     color = models.CharField(max_length=10, default='red')
+#     icon_url = models.URLField(default='https://cdn.coinranking.com/bOabBYkcX/bitcoin_btc.svg')
+#     market_cap = models.FloatField(default=0)
+#     price = models.FloatField(default=0)
+#     listed_at = models.DateTimeField(default=datetime.now())
+#     tier = models.IntegerField(default=0)
+#     change = models.FloatField(default=0)
+#     rank = models.IntegerField(default=0)
+#     sparkline = models.JSONField(null=True)
+#     low_volume = models.BooleanField(default=False)
+#     # coinranking_url = models.URLField(default='user_management/bitcoin.png')
+#     volume_24hr = models.FloatField(default=0)
+#     btc_price = models.FloatField(default=0)
+#
+#     def __str__(self):
+#         return self.name
 
 class Currency(models.Model):
-    uuid = models.CharField(max_length=50, unique=True, default=0)
-    symbol = models.CharField(max_length=10, default='BTS')
-    name = models.CharField(max_length=255, default='Bitcoin')
-    color = models.CharField(max_length=10, default='red')
-    icon_url = models.URLField(default='https://cdn.coinranking.com/bOabBYkcX/bitcoin_btc.svg')
-    market_cap = models.FloatField(default=0)
-    price = models.FloatField(default=0)
-    listed_at = models.DateTimeField(default=datetime.now())
-    tier = models.IntegerField(default=0)
-    change = models.FloatField(default=0)
-    rank = models.IntegerField(default=0)
-    sparkline = models.JSONField(null=True)
-    low_volume = models.BooleanField(default=False)
-    # coinranking_url = models.URLField(default='user_management/bitcoin.png')
-    volume_24hr = models.FloatField(default=0)
-    btc_price = models.FloatField(default=0)
+    code = models.CharField(max_length=3, unique=True)
+    name = models.CharField(max_length=64)
+    rate_to_usd = models.DecimalField(max_digits=10, decimal_places=4)
+    symbol = models.CharField(max_length=10)
+    flag = models.ImageField(upload_to='media/flags/')
 
     def __str__(self):
-        return self.name
+        return f"{self.code} - {self.name}"
+
+    class Meta:
+        verbose_name_plural = "currencies"
+
+
 
 
 class Payment(models.Model):
@@ -52,6 +68,9 @@ class Cryptocurrency(models.Model):
     name = models.CharField(max_length=50)
     logo = models.ImageField(upload_to='media/cryptocurrency_logos/')
     price_usd = models.DecimalField(max_digits=15, decimal_places=10)
+    market_cap = models.BigIntegerField()
+    volume = models.BigIntegerField()
+    price_history = JSONField(default=list, blank=True)
 
     def price_in_currency(self, currency_code):
         try:

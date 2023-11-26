@@ -1,6 +1,7 @@
 <!-- templates/base.html -->
 
 {% load static %}
+{% load humanize %}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -17,15 +18,20 @@
 
         <nav>
             <ul>
-            <li><form method="get" action="">
-                <label for="currency">Choose a currency:</label>
-                <select name="currency" id="currency" onchange="this.form.submit()">
-                <option value="CAD" {% if requested_currency_code == 'CAD' %}selected{% endif %}>CAD</option>
-                <option value="EUR" {% if requested_currency_code == 'EUR' %}selected{% endif %}>EUR</option>
-                <option value="INR" {% if requested_currency_code == 'INR' %}selected{% endif %}>INR</option>
-                </select>
-                </form></li>
+            <li class="currency-dropdown">
+                <form method="get" action="{% url 'home' %}">
+                    <select name="currency" id="select-currency" onchange="this.form.submit()">
+                        {% for currency in currencies %}
+                        <option value="{{ currency.code }}" {% if requested_currency_code == currency.code %}selected{% endif %}>
+                            {{ currency.code }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            </li>
+
                 <li><a href="{% url 'home' %}">Home</a></li>
+
 
                 {% if user.is_authenticated %}
                     <!-- If user is authenticated, show username and "Logout" link -->
@@ -50,30 +56,41 @@
 
     <section>
         <div class="container">
-        <h1>Cryptocurrencies</h1>
         <table class="crypto-table">
             <thead>
                 <tr>
                     <th>#</th>
                     <th>Name</th>
                     <th>Price</th>
-                    <th>Price in Requested Currency</th>
-                    <th>Buy/Sell</th> <!-- Empty header for the Buy button -->
+                    <th>Market Cap</th>
+                    <th>Volume</th>
+                    <th>Buy</th> <!-- Empty header for the Buy button -->
+                    <th>Sell</th>
                 </tr>
             </thead>
             <tbody>
                 {% for crypto in cryptos %}
-                <tr>
+                <tr data-href="{% url 'generate_price_history_graph' crypto.id %}">
                     <td><img class="crypto-logo" src="{{ crypto.logo.url }}" alt="{{ crypto.name }}"></td>
-                    <td><a href="{% url 'crypto_detail' crypto.name %}">{{ crypto.name }}</a></td>
-                    <td>${{ crypto.price_usd | floatformat:2 }}</td>
-                    <td>{{ crypto.converted_price | floatformat:2 }}</td>
-                    <td><a href="{% url 'buy_crypto' crypto.id %}" class="buy-button">Buy</a>
-                        <a href="{% url 'sell_crypto' crypto.id %}" class="buy-button">Sell</a>
-                    </td>
+                    <td>{{ crypto.name }}</td>
+                    <td>${{ crypto.price_usd | floatformat:2 | intcomma }}</td>
+                    <td>${{ crypto.market_cap | intcomma}}</td>
+                    <td>${{ crypto.volume | intcomma}}</td>
+                    <td><a href="{% url 'buy_crypto' crypto.id %}" class="buy-button">Buy</a></td>
+                    <td><a href="{% url 'sell_crypto' crypto.id %}" class="sell-button">Sell</a></td>
                 </tr>
                 {% endfor %}
             </tbody>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                const rows = document.querySelectorAll("tr[data-href]");
+                rows.forEach(row => {
+                    row.addEventListener("click", () => {
+                        window.location.href = row.dataset.href;
+                    });
+                });
+            });
+        </script>
         </table>
     </div>
     </section>
