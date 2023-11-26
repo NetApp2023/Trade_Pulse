@@ -226,24 +226,27 @@ def crypto_detail(request, crypto_name):
 @login_required
 def add_money(request):
     wallet, created = Wallet.objects.get_or_create(user=request.user)
+    msg = ""
     if request.method == 'POST':
         form = AddMoneyForm(request.POST)
         if form.is_valid():
             amount = int(form.cleaned_data.get('amount'))
             wallet.amount += amount
             wallet.save()
-            return redirect('home')  # Redirect to a success page or home
+            msg = "Wallet Top-Up Success"
+        else:
+            msg = "Wallet Top-Up Failed. Please check the form inputs."
     else:
         form = AddMoneyForm()
 
-    return render(request, 'user_management/add_money.html', {'form': form, 'wallet': wallet})
+    return render(request, 'user_management/add_money.html', {'form': form, 'wallet': wallet, 'msg': msg})
 
 
 @login_required
 def buy_crypto(request, crypto_id):
     crypto = get_object_or_404(Cryptocurrency, pk=crypto_id)
     wallet, created = Wallet.objects.get_or_create(user=request.user)  # Get the wallet for the logged-in user
-
+    buy_msg = ''
     if request.method == 'POST':
         form = BuyCryptoForm(request.POST)
         if form.is_valid():
@@ -261,6 +264,7 @@ def buy_crypto(request, crypto_id):
                 )
                 return redirect('home')  # Adjust the 'payment:home' to your project's URL name
             else:
+                buy_msg = "Insufficient funds in your wallet."
                 form.add_error(None, 'Insufficient funds in your wallet.')
     else:
         form = BuyCryptoForm()
@@ -268,14 +272,16 @@ def buy_crypto(request, crypto_id):
     return render(request, 'user_management/buy.html', {
         'crypto': crypto,
         'wallet': wallet,
-        'form': form
+        'form': form,
+        'msg': buy_msg
     })
 
 
 @login_required()
 def sell_crypto(request, crypto_id):
     crypto = get_object_or_404(Cryptocurrency, pk=crypto_id)
-    wallet, created = Wallet.objects.get_or_create(user=request.user)  # Get the wallet for the logged-in user
+    wallet, created = Wallet.objects.get_or_create(user=request.user)# Get the wallet for the logged-in user
+    sell_msg = ''
 
     # Retrieve the total quantity owned by summing all purchases for the current user
     aggregated = Purchase.objects.filter(user=request.user, crypto=crypto).aggregate(total_quantity=Sum('quantity'))
@@ -306,9 +312,11 @@ def sell_crypto(request, crypto_id):
                             purchase.delete()  # Optionally delete the purchase if quantity is zero
 
                 # Redirect to a success page or home
-                return redirect('home')  # Adjust the URL name to your project's home URL name
+                return redirect('home')
+                # Adjust the URL name to your project's home URL name
             else:
                 # Handle case where user tries to sell more than they own
+                sell_msg = "Insufficient Number of Coins"
                 form.add_error(None, 'You cannot sell more than you own.')
     else:
         form = SellCryptoForm()
@@ -317,7 +325,8 @@ def sell_crypto(request, crypto_id):
         'crypto': crypto,
         'wallet': wallet,
         'form': form,
-        'total_quantity_owned': total_quantity_owned
+        'total_quantity_owned': total_quantity_owned,
+        'msg': sell_msg
     })
 
 

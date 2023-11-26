@@ -17,7 +17,7 @@
 
         <nav>
             <ul>
-            <li><form method="get" action="">
+            <li><form class="currency_lab" method="get" action="">
                 <label for="currency">Choose a currency:</label>
                 <select name="currency" id="currency" onchange="this.form.submit()">
                 <option value="CAD" {% if requested_currency_code == 'CAD' %}selected{% endif %}>CAD</option>
