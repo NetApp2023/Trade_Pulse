@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="{% static 'user_management/styles.css' %}">
     <style>
       h2 {
-        color: #6a5acd;
+        color: #427D9D;
         text-align: center; /* Center the heading */
       }
 
@@ -22,12 +22,13 @@
         border: 1px solid #ddd; /* Form border */
         border-radius: 8px;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Form shadow */
+        text-align: left;
       }
 
       label {
         display: block;
         margin-bottom: 8px;
-        color: #6a5acd; /* Label color */
+        color: #427D9D; /* Label color */
       }
 
       input,
@@ -42,14 +43,16 @@
 
       .error-message {
         color: red;
-        margin-top: -10px;
+        margin-top: -20px;
+        margin-left: -20px;
         margin-bottom: 10px;
         font-size: 14px; /* Adjust font size */
-      }
+        text-align: left;
+            }
 
       button {
         width: 100%;
-        background-color: #6a5acd;
+        background-color: #427D9D;
         color: white;
         padding: 10px 0; /* Adjust vertical padding */
         border: none;
@@ -79,35 +82,45 @@
   <form method="post" action="{% url 'registration' %}" enctype="multipart/form-data">
     {% csrf_token %}
 
-    <!-- Apply styles to individual form elements -->
-    <div>
-      <label for="{{ user_form.username.id_for_label }}">Username</label>
-      {{ user_form.username }}
-    </div>
+     <div>
+            <label for="{{ user_form.username.id_for_label }}">Username</label>
+            {{ user_form.username }}
+            {% if user_form.errors.username %}
+                <div class="error-message">{{ user_form.errors.username }}</div>
+            {% endif %}
+        </div>
 
-    <div>
-      <label for="{{ user_form.email.id_for_label }}">Email</label>
-      {{ user_form.email }}
-    </div>
+      <div>
+            <label for="{{ user_form.email.id_for_label }}">Email</label>
+            {{ user_form.email }}
+            {% if user_form.errors.email %}
+                <div class="error-message">{{ user_form.errors.email }}</div>
+            {% endif %}
+        </div>
 
-    <div>
-      <label for="{{ user_form.password1.id_for_label }}">Password</label>
-      {{ user_form.password1 }}
-    </div>
+        <div>
+            <label for="{{ user_form.password1.id_for_label }}">Password</label>
+            {{ user_form.password1 }}
+        </div>
 
-    <div>
-      <label for="{{ user_form.password2.id_for_label }}">Confirm Password</label>
-      {{ user_form.password2 }}
-      {% if user_form.errors.password2 %}
-        <p class="error-message">{{ user_form.errors.password2 }}</p>
-      {% endif %}
-    </div>
+        <div>
+            <label for="{{ user_form.password2.id_for_label }}">Confirm Password</label>
+            {{ user_form.password2 }}
+            {% if user_form.errors.password2 %}
+                <div class="error-message">{{ user_form.errors.password2 }}</div>
+            {% endif %}
+        </div>
 
-    <!-- Include the profile photo field -->
-    <div>
-      <label for="{{ profile_form.id_photo.id_for_label }}">Profile Photo</label>
-      {{ profile_form.id_photo }}
-    </div>
+         <!-- Include the profile photo field -->
+        <div>
+            <label for="{{ profile_form.id_photo.id_for_label }}">Profile Photo</label>
+            {{ profile_form.id_photo }}
+            {% if profile_form.errors.id_photo %}
+                <div class="error-message">{{ profile_form.errors.id_photo }}</div>
+            {% endif %}
+        </div>
+
+
 
     <button type="submit">Register</button>
   </form>

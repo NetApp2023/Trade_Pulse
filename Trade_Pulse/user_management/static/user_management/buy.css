@@ -10,7 +10,7 @@ body {
 }
 
 header {
-    background-color: #6a5acd;
+    background-color: #427D9D;
     padding: 20px;
     color: white;
     display: flex;
@@ -58,7 +58,7 @@ nav li:first-child {
 }
 
 footer {
-    background-color: #6a5acd;
+    background-color: #427D9D;
     color: white;
     text-align: center;
     padding: 10px 0;
@@ -133,7 +133,7 @@ footer p {
     display: block; /* Make the button a block element to occupy its own line */
     width: 100%; /* Button to occupy the full width of the form */
     padding: 10px 0; /* Padding inside the button */
-    background-color: #6a5acd; /* Background color of the button */
+    background-color: #427D9D; /* Background color of the button */
     color: white; /* Text color of the button */
     border: none; /* No border for the button */
     border-radius: 4px; /* Rounded corners for the button */

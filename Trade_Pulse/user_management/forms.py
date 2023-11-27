@@ -10,9 +10,10 @@ class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
         fields = ['id_photo']  # Add other fields if needed
-        # widgets = {
-        #     'id_photo': forms.ClearableFileInput(attrs={'required': False}),  # Add this line to make it not required
-        # }
+
+    def __init__(self, *args, **kwargs):
+        super(UserProfileForm, self).__init__(*args, **kwargs)
+        self.fields['id_photo'].required = True
 
 
 class RegistrationForm(UserCreationForm):
