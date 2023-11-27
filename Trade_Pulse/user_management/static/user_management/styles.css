@@ -125,7 +125,9 @@ footer p {
     background-color: #427D9D;
     color: #333333;
 }
-
+.crypto-table th{
+    color: whitesmoke;
+}
 .crypto-table th,
 .crypto-table td {
     padding: 10px;
