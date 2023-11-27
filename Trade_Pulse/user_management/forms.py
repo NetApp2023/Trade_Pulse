@@ -3,7 +3,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, PasswordResetForm
 from django.contrib.auth.models import User
-from .models import UserProfile  # Import the UserProfile model
+from .models import UserProfile, Feedback  # Import the UserProfile model
 
 
 class UserProfileForm(forms.ModelForm):
@@ -66,3 +66,9 @@ class BuyCryptoForm(forms.Form):
 
 class SellCryptoForm(forms.Form):
     quantity = forms.DecimalField(label='Coins to be Sold', min_value=0.0001)
+
+
+class FeedbackForm(forms.ModelForm):
+    class Meta:
+        model = Feedback
+        fields = ['name', 'email', 'message']

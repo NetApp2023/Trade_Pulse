@@ -8,8 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Trade Pulse{% endblock %}</title>
-    <link rel="stylesheet" href="{% static 'user_management/styles.css' %}">
-    {% block extra_head %}{% endblock %}
+    <link rel="stylesheet" href="{% static 'user_management/feedback_form.css' %}">
 </head>
 <body>
     <header>
@@ -25,9 +24,8 @@
                         <!-- Display the user's profile photo if available -->
                         <li><img src="{{  user.userprofile.id_photo.url }}" alt="Profile Photo" height="50"></li>
                     {% endif %}
-                    <li><a href="{% url 'Payment_History' %}">Transactions</a></li>
-                    <li><a href="{% url 'add_money' %}" class="wallet-icon">&#x1F4B0;</a></li>
-                    <li>{{ wallet.amount }}</li>
+                     <li><a href="{% url 'Payment_History' %}">Transactions</a></li>
+                    <li><a href="{% url 'add_money' %}" class="wallet-icon">&#x1F4B0;</a>{{ wallet.amount }}</li>
                     <li><a href="{% url 'logout' %}">Logout</a></li>
                 {% else %}
                     <!-- If user is not authenticated, show "Sign Up" and "Sign In" links -->
@@ -40,35 +38,26 @@
     </header>
 
 
-        <section>
-        <div class="container">
-        <h1>Transactions</h1>
-    <table class="crypto-table">
-        <thead>
-            <tr>
-                <th>Txn_ID</th>
-                <th>Crypto</th>
-                <th>Quantity</th>
-                <th>Price</th>
-                <th>Purchase Date</th>
-                <th>Transaction</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for purchase in purchases %}
-            <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ purchase.crypto.name }}</td>
-                <td>{{ purchase.trans_quantity }}</td>
-                <td>{{ purchase.purchase_price }}</td>
-                <td>{{ purchase.purchase_date }}</td>  <!-- Display the purchase_date field -->
-                <td>{{ purchase.transaction_type }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <div class="content-wrapper">
+        <div class="content">
+            <!-- Your form and other content here -->
+            <h2>Add your insights</h2>
+<form method="post" action="{% url 'feedback_view' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Submit</button>
+</form>
         </div>
-    </section>
+    </div>
+
+  <div class="comments-container">
+    <h2>Comments ({{ feedback_msg|length }})</h2>
+    {% for feedback in feedback_msg %}
+      <div class="comment">
+        <p><strong>{{ feedback.name }}</strong> said: {{ feedback.message }}</p>
+      </div>
+    {% endfor %}
+  </div>
 
 
     <footer>

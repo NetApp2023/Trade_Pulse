@@ -40,6 +40,7 @@
                         <!-- Display the user's profile photo if available -->
                         <li><img src="{{  user.userprofile.id_photo.url }}" alt="Profile Photo" height="50"></li>
                     {% endif %}
+                    <li><a href="{% url 'feedback_view' %}">Discussion</a></li>
                     <li><a href="{% url 'Payment_History' %}">Transactions</a></li>
                     <li><a href="{% url 'add_money' %}" class="wallet-icon">&#x1F4B0;</a>{{ wallet.amount}}</li>
                     <li><a href="{% url 'logout' %}">Logout</a></li>
