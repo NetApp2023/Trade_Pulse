@@ -56,6 +56,81 @@
 
     <section>
         <div class="container">
+       <div class="header1">
+    <h2>Highlights</h2>
+    <label class="switch">
+        <input type="checkbox" id="toggleSwitch" checked>
+        <span class="slider round"></span>
+    </label>
+</div>
+
+        <div id="recentCoinsCard" style="display: flex; justify-content: space-between; gap: 20px;">
+    <!-- Card for Stats -->
+
+    <div class="card" style="padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <h2 style="font-size: 20px; color: #333; margin-bottom: 16px;">Stats</h2>
+        <table class="crypto-table">
+                            <tbody>
+                                <tr>
+                                    <td><img src="{% static 'user_management/coins.png' %}" alt="Total Coins height="30" width="30" /></td>
+                                    <td>Total Coins:</td>
+                                    <td>{{ highlights.totalCoins }}</td>
+                                </tr>
+                                <tr>
+                                    <td><img src="{% static 'user_management/market.png' %}" alt="Total Markets height="30" width="30" /></td>
+                                    <td>Total Markets:</td>
+                                    <td>{{ highlights.totalMarkets }}</td>
+                                </tr>
+                                <tr>
+                                    <td><img src="{% static 'user_management/exchanges.png' %}" alt="Total Exchanges height="30" width="30" /></td>
+                                    <td>Total Exchanges:</td>
+                                    <td>{{ highlights.totalExchanges }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+    </div>
+
+         <div class="card" style="padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <h2 style="font-size: 20px; color: #333; margin-bottom: 16px;">Trending Coins</h2>
+        <table class="crypto-table">
+                            <tbody>
+                                {% for coin in trendings %}
+                                <tr>
+                                    <td><img src="{{ coin.icon_url }}" alt="{{ coin.symbol }}" height="30" width="30" /></td>
+                                    <td>{{ coin.name }} ({{ coin.symbol }})</td>
+                                    <td>{{ coin.price }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+    </div>
+ <div class="card" style="padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+        <h2 style="font-size: 20px; color: #333; margin-bottom: 16px;">Newest Coins</h2>
+        <table class="crypto-table">
+                            <tbody>
+                                {% for coin in newest %}
+                                <tr>
+                                    <td><img src="{{ coin.icon_url }}" alt="{{ coin.symbol }}" height="30" width="30" /></td>
+                                    <td>{{ coin.name }} ({{ coin.symbol }})</td>
+                                    <td>{{ coin.price }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+    </div>
+
+        {#        {% endfor %}#}
+            </div>
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const toggleSwitch = document.getElementById('toggleSwitch');
+                    const recentCoinsCard = document.getElementById('recentCoinsCard');
+
+                    toggleSwitch.addEventListener('change', function () {
+                        recentCoinsCard.style.display = this.checked ? 'flex' : 'none';
+                    });
+                });
+            </script>
         <table class="crypto-table">
             <thead>
                 <tr>

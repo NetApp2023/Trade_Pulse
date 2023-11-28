@@ -120,6 +120,14 @@ formatted_currencies = []
 
 @login_required
 def home(request):
+    stats = fetch_stats()
+    trending_coins = []
+    newest_coins = []
+    highlights = []
+    if stats:
+        highlights = stats[0]
+        trending_coins = stats[1]
+        newest_coins = stats[2]
     wallet, created = Wallet.objects.get_or_create(user=request.user)
     requested_currency = request.GET.get('currency', 'CAD')
     cryptos = Cryptocurrency.objects.all().order_by('-price_usd')
@@ -135,7 +143,11 @@ def home(request):
         'cryptos': cryptos,
         'requested_currency_code': requested_currency,
         'currencies': currencies,
-        'wallet': wallet  # Make sure this name matches the template
+        'wallet': wallet,
+        'highlights': highlights,
+        'trendings': trending_coins,
+        'newest': newest_coins
+        # Make sure this name matches the template
     })
 
 
@@ -346,3 +358,68 @@ def feedback_view(request):
         form = FeedbackForm()
     feedback_msg = Feedback.objects.all()
     return render(request, 'user_management/feedback_form.html', {'form': form, 'feedback_msg': feedback_msg, 'wallet': wallet})
+
+
+def fetch_stats():
+    stats = []
+    api_url = "https://api.coinranking.com/v2/stats"
+    response = requests.get(api_url)
+
+    if response.status_code == 200:
+        statsData = response.json().get("data", {})
+        trendingData = response.json().get("data", {}).get("bestCoins", [])
+        newestCoindata = response.json().get("data", {}).get("newestCoins", [])
+
+        trending_coins = []
+        newest_coins = []
+
+        highlights = {
+            'totalCoins': statsData.get('totalCoins', 0),
+            'totalMarkets': statsData.get('totalMarkets', 0),
+            'totalExchanges': statsData.get('totalExchanges', 0),
+            'totalMarketCap': statsData.get('totalMarketCap', 0),
+            'total24hVolume': statsData.get('total24hVolume', 0),
+            'btcDominance': statsData.get('btcDominance', 0)
+        }
+
+        for trendingCoin in trendingData:
+            uuid = trendingCoin.get('uuid', '')
+            symbol = trendingCoin.get('symbol', 'BTS')
+            name = trendingCoin.get('name', '')
+            icon_url = trendingCoin.get('iconUrl', 'https://cdn.coinranking.com/bOabBYkcX/bitcoin_btc.svg')
+            rank = trendingCoin.get('coinrankingUrl', 0)
+
+            trending_coin = {
+                'coin_id': uuid,
+                'name': name,
+                'symbol': symbol,
+                'icon_url': icon_url,
+                'rank': rank,
+            }
+            print(trending_coin)
+            trending_coins.append(trending_coin)
+
+        for newestCoin in newestCoindata:
+            uuid = newestCoin.get('uuid', '')
+            symbol = newestCoin.get('symbol', 'BTS')
+            name = newestCoin.get('name', '')
+            icon_url = newestCoin.get('iconUrl', 'https://cdn.coinranking.com/bOabBYkcX/bitcoin_btc.svg')
+            rank = newestCoin.get('coinrankingUrl', 0)
+
+            newest_coin = {
+                'coin_id': uuid,
+                'name': name,
+                'symbol': symbol,
+                'icon_url': icon_url,
+                'rank': rank,
+            }
+
+            newest_coins.append(newest_coin)
+
+            stats.append(highlights)
+            stats.append(trending_coins)
+            stats.append(newest_coins)
+
+        return stats
+    else:
+        return []
